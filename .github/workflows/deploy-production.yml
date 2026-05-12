@@ -1,0 +1,28 @@
+##
+## Deploy a Producción — corre solo cuando se hace merge a main.
+##
+## Por qué separar CI del deploy:
+## - CI corre en todos los PRs (feedback rápido)
+## - Deploy solo en main (cambios aprobados)
+##
+## Esta configuración asume:
+## - Frontend: conectado a Vercel via GitHub integration (automático)
+## - Variables de entorno configuradas en Vercel Dashboard
+##
+
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend → Vercel
+    runs-on: ubuntu-latest
+    # Vercel se despliega automáticamente cuando hay push a main
+    # si la integración de GitHub está configurada en vercel.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Notify deploy
+        run: echo "Vercel se despliega automáticamente via GitHub integration"
