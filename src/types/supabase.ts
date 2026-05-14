@@ -4,6 +4,7 @@ export type EstadoProspecto = 'nuevo' | 'seguimiento' | 'convertido' | 'perdido'
 
 export type TipoActividad   = 'llamada' | 'nota' | 'seguimiento' | 'match_aprobado'
 export type TipoImportacion = 'facturas' | 'visitas' | 'maestros'
+export type Tier = 'bronce' | 'plata' | 'oro'
 
 export interface Database {
   public: {
@@ -52,6 +53,16 @@ export interface Database {
         Row: Importacion
         Insert: Omit<Importacion, 'id' | 'created_at'>
         Update: never
+      }
+      puntos_mensuales: {
+        Row: PuntosMensuales
+        Insert: Omit<PuntosMensuales, 'id' | 'total_puntos'>
+        Update: Partial<Omit<PuntosMensuales, 'id' | 'total_puntos'>>
+      }
+      tiers_clientes: {
+        Row: TierCliente
+        Insert: Omit<TierCliente, never>
+        Update: Partial<TierCliente>
       }
     }
   }
@@ -212,6 +223,33 @@ export interface Importacion {
   prospectos_conv: number
   usuario_id: string
   created_at: string
+}
+
+export interface PuntosMensuales {
+  id: string
+  idcliente: string
+  anio: number
+  mes: string                    // 'ENERO' … 'DICIEMBRE'
+  pts_volumen: number
+  pts_valor: number
+  pts_diversificacion: number
+  pts_frecuencia: number
+  pts_bonus: number
+  total_puntos: number           // columna generada (solo lectura)
+  sacos_total: number | null
+  valor_total: number | null
+  lineas_distintas: number | null
+  semanas_distintas: number | null
+  calculado_at: string
+}
+
+export interface TierCliente {
+  idcliente: string
+  tier: Tier
+  puntos_12m: number
+  tier_anterior: Tier | null
+  tier_desde: string | null      // fecha ISO
+  actualizado_at: string
 }
 
 // Tipos para KPIs calculados
