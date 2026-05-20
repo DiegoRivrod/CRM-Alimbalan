@@ -163,7 +163,7 @@ export async function crearTarea(
     }
   }
 
-  return { data: (data as Tarea) ?? null, error: error?.message ?? null }
+  return { data: (data as unknown as Tarea) ?? null, error: error?.message ?? null }
 }
 
 export async function actualizarTarea(

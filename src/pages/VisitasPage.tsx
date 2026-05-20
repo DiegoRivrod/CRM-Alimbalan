@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, FileText, CalendarClock, CheckCircle, ArrowRight } from 'lucide-react'
+import { Phone, FileText, CalendarClock, CheckCircle, ArrowRight, ClipboardPlus, ClipboardCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
 import type { TipoActividad } from '@/types/supabase'
@@ -9,24 +9,30 @@ import { useActividadGlobal } from '@/hooks/useActividad'
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const TIPO_ICON: Record<TipoActividad, React.ElementType> = {
-  llamada:        Phone,
-  nota:           FileText,
-  seguimiento:    CalendarClock,
-  match_aprobado: CheckCircle,
+  llamada:           Phone,
+  nota:              FileText,
+  seguimiento:       CalendarClock,
+  match_aprobado:    CheckCircle,
+  tarea_creada:      ClipboardPlus,
+  tarea_completada:  ClipboardCheck,
 }
 
 const TIPO_BADGE: Record<TipoActividad, string> = {
-  llamada:        'bg-blue-50 text-blue-700',
-  nota:           'bg-gray-100 text-gray-600',
-  seguimiento:    'bg-orange-50 text-orange-700',
-  match_aprobado: 'bg-green-50 text-green-700',
+  llamada:           'bg-blue-50 text-blue-700',
+  nota:              'bg-gray-100 text-gray-600',
+  seguimiento:       'bg-orange-50 text-orange-700',
+  match_aprobado:    'bg-green-50 text-green-700',
+  tarea_creada:      'bg-indigo-50 text-indigo-700',
+  tarea_completada:  'bg-emerald-50 text-emerald-700',
 }
 
 const TIPO_LABEL: Record<TipoActividad, string> = {
-  llamada:        'Llamada',
-  nota:           'Nota',
-  seguimiento:    'Seguimiento',
-  match_aprobado: 'Match aprobado',
+  llamada:           'Llamada',
+  nota:              'Nota',
+  seguimiento:       'Seguimiento',
+  match_aprobado:    'Match aprobado',
+  tarea_creada:      'Tarea creada',
+  tarea_completada:  'Tarea completada',
 }
 
 function formatFecha(s: string) {

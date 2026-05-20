@@ -1,10 +1,7 @@
 ##
-## CI — Corre en cada Pull Request y en cada push a main.
+## CI — Corre en cada Pull Request y en cada push a main/develop.
 ##
-## Por qué CI automático:
-## - Atrapa errores de TypeScript antes de llegar a producción
-## - Garantiza que el build de Vite compile sin errores
-## - El lint mantiene consistencia de código
+## Jobs paralelos: lint, typecheck, test → build (depende de los 3)
 ##
 
 name: CI
@@ -15,27 +12,58 @@ on:
   pull_request:
     branches: [main, develop]
 
-jobs:
-  build:
-    name: TypeScript + Lint + Build
-    runs-on: ubuntu-latest
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run lint
 
-      - name: Install dependencies
-        run: npm ci
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
 
-      - name: Lint
-        run: npm run lint
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
       - name: Build (TypeScript + Vite)
         run: npm run build
         env:
