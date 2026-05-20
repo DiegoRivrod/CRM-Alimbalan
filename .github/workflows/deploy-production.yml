@@ -1,13 +1,13 @@
 ##
-## Deploy a Producción — corre solo cuando se hace merge a main.
+## Deploy a Producción — corre solo cuando se hace merge/push a main.
 ##
-## Por qué separar CI del deploy:
-## - CI corre en todos los PRs (feedback rápido)
-## - Deploy solo en main (cambios aprobados)
+## Frontend: Vercel se despliega automáticamente via GitHub Integration.
+## Backend:  Este workflow corre migraciones SQL y despliega Edge Functions.
 ##
-## Esta configuración asume:
-## - Frontend: conectado a Vercel via GitHub integration (automático)
-## - Variables de entorno configuradas en Vercel Dashboard
+## Secrets necesarios:
+##   SUPABASE_ACCESS_TOKEN  — token personal (supabase.com/dashboard/account/tokens)
+##   SUPABASE_PROJECT_REF   — ID del proyecto (hbxfohohfuzzihjhzhcy)
+##   (SUPABASE_DB_PASSWORD solo si db push lo requiere — ver nota abajo)
 ##
 
 name: Deploy Production
@@ -15,14 +15,39 @@ name: Deploy Production
 on:
   push:
     branches: [main]
+    paths:
+      - 'supabase/**'
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false   # No cancelar deploys en progreso
 
 jobs:
-  deploy-frontend:
-    name: Deploy Frontend → Vercel
+  deploy-supabase:
+    name: Deploy Supabase (Migraciones + Functions)
     runs-on: ubuntu-latest
-    # Vercel se despliega automáticamente cuando hay push a main
-    # si la integración de GitHub está configurada en vercel.com
     steps:
       - uses: actions/checkout@v4
-      - name: Notify deploy
-        run: echo "Vercel se despliega automáticamente via GitHub integration"
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run migrations
+        run: supabase db push --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy sync-visitas --no-verify-jwt
+          supabase functions deploy sync-maestros --no-verify-jwt
+          supabase functions deploy calcular-puntos --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

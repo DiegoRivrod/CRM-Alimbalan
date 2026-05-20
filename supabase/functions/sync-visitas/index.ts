@@ -53,7 +53,6 @@ function parseCSVLine(line: string): string[] {
   return result
 }
 
-function s(v: string | undefined): string { return v?.trim() ?? '' }
 
 function parseLatLng(loc: string): [number | null, number | null] {
   const parts = loc.split(',').map(p => parseFloat(p.trim()))

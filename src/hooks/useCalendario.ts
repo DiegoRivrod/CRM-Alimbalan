@@ -63,7 +63,7 @@ export function useCalendario(anio: number, mes: number, filtroFuerza?: string) 
     if (filtroFuerza) qVisitas = qVisitas.eq('fuerza_de_venta', filtroFuerza)
 
     // Query tareas en el rango
-    let qTareas = supabase
+    const qTareas = supabase
       .from('tareas')
       .select('id, titulo, descripcion, tipo, prioridad, estado, fecha_vencimiento, asignado_a')
       .gte('fecha_vencimiento', inicio)

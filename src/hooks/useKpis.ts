@@ -125,7 +125,7 @@ export function useKpisExtras(mes: string, anio: number, diasInactivos: number) 
         }
         setProspectosAbiertos(pc ?? 0)
 
-        let q = supabase
+        const q = supabase
           .from('facturas')
           .select('semana,valortotal,mes,anio')
           .neq('tipodocume', 'Notas de Crédito')
