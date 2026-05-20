@@ -10,6 +10,9 @@ import VendedoresPage from '@/pages/vendedores/VendedoresPage'
 import VendedorDetallePage from '@/pages/vendedores/VendedorDetallePage'
 import ProspectosPage from '@/pages/prospectos/ProspectosPage'
 import ProspectoDetallePage from '@/pages/prospectos/ProspectoDetallePage'
+import KanbanPage from '@/pages/prospectos/KanbanPage'
+import TareasPage from '@/pages/tareas/TareasPage'
+import CalendarioPage from '@/pages/calendario/CalendarioPage'
 import VisitasPage from '@/pages/VisitasPage'
 import KpisPage from '@/pages/kpis/KpisPage'
 import ImportarPage from '@/pages/importar/ImportarPage'
@@ -28,6 +31,9 @@ export default function App() {
             <Route path="/clientes/:id"      element={<ClienteDetallePage />} />
             <Route path="/prospectos"     element={<ProspectosPage />} />
             <Route path="/prospectos/:id" element={<ProspectoDetallePage />} />
+            <Route path="/pipeline"     element={<KanbanPage />} />
+            <Route path="/tareas"      element={<TareasPage />} />
+            <Route path="/calendario" element={<CalendarioPage />} />
             <Route path="/visitas"    element={<VisitasPage />} />
 
             <Route path="/vendedores" element={

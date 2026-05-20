@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import ActividadTimeline from '@/components/actividad/ActividadTimeline'
+import TareasVinculadas from '@/components/tareas/TareasVinculadas'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -345,6 +346,9 @@ export default function ProspectoDetallePage() {
           } />
         </div>
       )}
+
+      {/* Tareas vinculadas */}
+      <TareasVinculadas prospecto_id={id} prospecto_nombre={prospecto.nombre} />
 
       {/* Timeline de actividad */}
       <ActividadTimeline prospecto_id={id} />

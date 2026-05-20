@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import GlobalSearch from './GlobalSearch'
+import NotificacionesBell from './NotificacionesBell'
 
 export default function AppLayout() {
   return (
@@ -10,6 +11,9 @@ export default function AppLayout() {
         {/* Header con búsqueda global */}
         <header className="h-14 border-b border-border bg-white flex items-center px-6 gap-4 shrink-0">
           <GlobalSearch />
+          <div className="ml-auto">
+            <NotificacionesBell />
+          </div>
         </header>
         <main className="flex-1 overflow-auto">
           <div className="p-6">

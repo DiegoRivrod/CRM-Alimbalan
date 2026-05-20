@@ -1,7 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Eye, MapPin, Phone, Building2, Tag, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Eye, MapPin, Phone, Building2, Tag, TrendingUp, TrendingDown, Minus, Award } from 'lucide-react'
 import { useClienteDetalle } from '@/hooks/useClientes'
+import { useAbalPlusCliente, TIER_CONFIG, nextTierInfo } from '@/hooks/useAbalPlus'
 import ActividadTimeline from '@/components/actividad/ActividadTimeline'
+import TareasVinculadas from '@/components/tareas/TareasVinculadas'
 
 function diasDesde(fecha: string | null): number | null {
   if (!fecha) return null
@@ -40,6 +42,7 @@ export default function ClienteDetallePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { cliente, facturas, visitas, loading } = useClienteDetalle(id ?? '')
+  const { tier: tierData, puntos, loading: loadingTier } = useAbalPlusCliente(id ?? '')
 
   if (loading) {
     return (
@@ -87,6 +90,14 @@ export default function ClienteDetallePage() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <SaludBadge ultimaFecha={facturas[0]?.fecha ?? null} />
+            {tierData && (() => {
+              const cfg = TIER_CONFIG[tierData.tier]
+              return (
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg}`}>
+                  {cfg.emoji} {cfg.label}
+                </span>
+              )
+            })()}
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
               cliente.status?.toUpperCase() === 'ACTIVO'
                 ? 'bg-green-100 text-green-700'
@@ -133,6 +144,102 @@ export default function ClienteDetallePage() {
             <span>{formatSoles(totalVentas)} vendido</span>
             <span>Meta: {formatSoles(metaTotal)}</span>
           </div>
+        </div>
+      )}
+
+      {/* ABAL+ — Tier y puntos */}
+      {!loadingTier && tierData && (
+        <div className="bg-white border border-border rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Award className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">Programa ABAL+</h3>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4 mb-4">
+            {/* Tier actual */}
+            <div className="text-center p-4 rounded-lg bg-muted/30">
+              <p className="text-3xl mb-1">{TIER_CONFIG[tierData.tier].emoji}</p>
+              <p className={`text-sm font-semibold ${TIER_CONFIG[tierData.tier].bg} inline-flex px-3 py-0.5 rounded-full`}>
+                {TIER_CONFIG[tierData.tier].label}
+              </p>
+              {tierData.tier_desde && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Desde {formatFecha(tierData.tier_desde)}
+                </p>
+              )}
+            </div>
+
+            {/* Puntos 12 meses */}
+            <div className="text-center p-4 rounded-lg bg-muted/30">
+              <p className="text-2xl font-bold">{tierData.puntos_12m.toLocaleString('es-PE')}</p>
+              <p className="text-xs text-muted-foreground">Puntos (12 meses)</p>
+            </div>
+
+            {/* Progreso al siguiente nivel */}
+            <div className="p-4 rounded-lg bg-muted/30">
+              {(() => {
+                const info = nextTierInfo(tierData.tier, tierData.puntos_12m)
+                if (!info) return (
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-yellow-700">Nivel máximo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Ya está en el tier más alto</p>
+                  </div>
+                )
+                return (
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Progreso a {TIER_CONFIG[info.next as keyof typeof TIER_CONFIG].emoji} {info.next}</span>
+                      <span className="font-medium">{info.pct}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${TIER_CONFIG[info.next as keyof typeof TIER_CONFIG].bar}`}
+                        style={{ width: `${info.pct}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Faltan <span className="font-medium">{info.faltan.toLocaleString('es-PE')}</span> pts para {info.next}
+                    </p>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+
+          {/* Historial de puntos por mes */}
+          {puntos.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">Historial de puntos</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-2 px-2 font-medium text-muted-foreground">Mes</th>
+                      <th className="text-right py-2 px-2 font-medium text-muted-foreground">Volumen</th>
+                      <th className="text-right py-2 px-2 font-medium text-muted-foreground">Valor</th>
+                      <th className="text-right py-2 px-2 font-medium text-muted-foreground">Diversif.</th>
+                      <th className="text-right py-2 px-2 font-medium text-muted-foreground">Frecuencia</th>
+                      <th className="text-right py-2 px-2 font-medium text-muted-foreground">Bonus</th>
+                      <th className="text-right py-2 px-2 font-semibold">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {puntos.map(p => (
+                      <tr key={p.id} className="hover:bg-muted/20">
+                        <td className="py-1.5 px-2">{p.mes} {p.anio}</td>
+                        <td className="py-1.5 px-2 text-right">{p.pts_volumen}</td>
+                        <td className="py-1.5 px-2 text-right">{p.pts_valor}</td>
+                        <td className="py-1.5 px-2 text-right">{p.pts_diversificacion}</td>
+                        <td className="py-1.5 px-2 text-right">{p.pts_frecuencia}</td>
+                        <td className="py-1.5 px-2 text-right">{p.pts_bonus}</td>
+                        <td className="py-1.5 px-2 text-right font-semibold">{p.total_puntos}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -194,6 +301,9 @@ export default function ClienteDetallePage() {
           ))}
         </ol>
       </div>
+
+      {/* Tareas vinculadas */}
+      <TareasVinculadas idcliente={id} cliente_nombre={cliente.nombre} />
 
       {/* Timeline de actividad */}
       <ActividadTimeline idcliente={id} />

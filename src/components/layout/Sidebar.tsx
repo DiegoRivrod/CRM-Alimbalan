@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, TrendingUp, UserSearch,
-  Activity, Upload, BarChart3, LogOut, Building2
+  Activity, Upload, BarChart3, LogOut, Building2, Kanban, CheckSquare, Calendar
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -11,6 +11,9 @@ const navItems = [
   { to: '/clientes',   label: 'Clientes',      icon: Users,           roles: ['gerente', 'supervisor', 'vendedor'] },
   { to: '/vendedores', label: 'Vendedores',    icon: TrendingUp,      roles: ['gerente', 'supervisor'] },
   { to: '/prospectos', label: 'Prospectos',    icon: UserSearch,      roles: ['gerente', 'supervisor', 'vendedor'] },
+  { to: '/pipeline',   label: 'Pipeline',      icon: Kanban,          roles: ['gerente', 'supervisor', 'vendedor'] },
+  { to: '/tareas',     label: 'Tareas',        icon: CheckSquare,     roles: ['gerente', 'supervisor', 'vendedor'] },
+  { to: '/calendario', label: 'Calendario',    icon: Calendar,        roles: ['gerente', 'supervisor', 'vendedor'] },
   { to: '/visitas',    label: 'Actividad',     icon: Activity,        roles: ['gerente', 'supervisor', 'vendedor'] },
   { to: '/kpis',       label: 'KPIs',          icon: BarChart3,       roles: ['gerente', 'supervisor'] },
   { to: '/importar',   label: 'Importar datos',icon: Upload,          roles: ['gerente', 'supervisor'] },

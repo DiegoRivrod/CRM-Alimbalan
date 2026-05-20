@@ -2,9 +2,21 @@ export type Rol = 'gerente' | 'supervisor' | 'vendedor'
 
 export type EstadoProspecto = 'nuevo' | 'seguimiento' | 'convertido' | 'perdido'
 
-export type TipoActividad   = 'llamada' | 'nota' | 'seguimiento' | 'match_aprobado'
+export type TipoActividad   = 'llamada' | 'nota' | 'seguimiento' | 'match_aprobado' | 'tarea_creada' | 'tarea_completada'
+
+export type TipoTarea     = 'llamada' | 'visita' | 'seguimiento' | 'cobranza' | 'general'
+export type PrioridadTarea = 'baja' | 'media' | 'alta' | 'urgente'
+export type EstadoTarea    = 'pendiente' | 'en_progreso' | 'completada' | 'cancelada'
 export type TipoImportacion = 'facturas' | 'visitas' | 'maestros'
 export type Tier = 'bronce' | 'plata' | 'oro'
+
+export type TipoNotificacion =
+  | 'tarea_vencida'
+  | 'tarea_asignada'
+  | 'prospecto_sin_actividad'
+  | 'cliente_inactivo'
+  | 'meta_por_cumplir'
+  | 'importacion_completada'
 
 export interface Database {
   public: {
@@ -48,6 +60,16 @@ export interface Database {
         Row: Actividad
         Insert: Omit<Actividad, 'id' | 'created_at'>
         Update: Partial<Actividad>
+      }
+      tareas: {
+        Row: Tarea
+        Insert: Omit<Tarea, 'id' | 'created_at' | 'updated_at' | 'completada_at'>
+        Update: Partial<Tarea>
+      }
+      notificaciones: {
+        Row: Notificacion
+        Insert: Omit<Notificacion, 'id' | 'created_at'>
+        Update: Partial<Pick<Notificacion, 'leida'>>
       }
       importaciones: {
         Row: Importacion
@@ -211,6 +233,37 @@ export interface Actividad {
   idcliente: string | null
   usuario_id: string
   nota: string | null
+  created_at: string
+}
+
+export interface Tarea {
+  id: string
+  titulo: string
+  descripcion: string | null
+  tipo: TipoTarea
+  prioridad: PrioridadTarea
+  estado: EstadoTarea
+  fecha_vencimiento: string | null
+  asignado_a: string
+  creado_por: string
+  prospecto_id: string | null
+  idcliente: string | null
+  completada_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Notificacion {
+  id: string
+  usuario_id: string
+  tipo: TipoNotificacion
+  titulo: string
+  mensaje: string | null
+  leida: boolean
+  tarea_id: string | null
+  prospecto_id: string | null
+  idcliente: string | null
+  link: string | null
   created_at: string
 }
 

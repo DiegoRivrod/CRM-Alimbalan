@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { Phone, FileText, CalendarClock, CheckCircle, Plus } from 'lucide-react'
+import { Phone, FileText, CalendarClock, CheckCircle, Plus, ClipboardPlus, ClipboardCheck } from 'lucide-react'
 import { useActividadProspecto, useActividadCliente } from '@/hooks/useActividad'
 import type { TipoActividad } from '@/types/supabase'
 
 // ── Helpers visuales ──────────────────────────────────────────────────────────
 
 const TIPO_CONFIG: Record<TipoActividad, { label: string; icon: React.ElementType; color: string; badge: string }> = {
-  llamada:        { label: 'Llamada',        icon: Phone,         color: 'text-blue-600',   badge: 'bg-blue-50 text-blue-700' },
-  nota:           { label: 'Nota',           icon: FileText,      color: 'text-gray-500',   badge: 'bg-gray-100 text-gray-600' },
-  seguimiento:    { label: 'Seguimiento',    icon: CalendarClock, color: 'text-orange-500', badge: 'bg-orange-50 text-orange-700' },
-  match_aprobado: { label: 'Match aprobado', icon: CheckCircle,   color: 'text-green-600',  badge: 'bg-green-50 text-green-700' },
+  llamada:           { label: 'Llamada',           icon: Phone,          color: 'text-blue-600',   badge: 'bg-blue-50 text-blue-700' },
+  nota:              { label: 'Nota',              icon: FileText,       color: 'text-gray-500',   badge: 'bg-gray-100 text-gray-600' },
+  seguimiento:       { label: 'Seguimiento',       icon: CalendarClock,  color: 'text-orange-500', badge: 'bg-orange-50 text-orange-700' },
+  match_aprobado:    { label: 'Match aprobado',    icon: CheckCircle,    color: 'text-green-600',  badge: 'bg-green-50 text-green-700' },
+  tarea_creada:      { label: 'Tarea creada',      icon: ClipboardPlus,  color: 'text-indigo-500', badge: 'bg-indigo-50 text-indigo-700' },
+  tarea_completada:  { label: 'Tarea completada',  icon: ClipboardCheck, color: 'text-emerald-500',badge: 'bg-emerald-50 text-emerald-700' },
 }
 
 const TIPOS_MANUALES: TipoActividad[] = ['llamada', 'nota', 'seguimiento']

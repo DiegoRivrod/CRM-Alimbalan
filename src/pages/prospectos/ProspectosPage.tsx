@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronRight, UserSearch, Download, X, SlidersHorizontal } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { ChevronRight, UserSearch, Download, X, SlidersHorizontal, Kanban, List } from 'lucide-react'
 import { useProspectos, type EstadoProspecto } from '@/hooks/useProspectos'
 import { useAuth } from '@/lib/auth'
 import { exportarProspectos } from '@/lib/exportar'
@@ -134,6 +134,18 @@ export default function ProspectosPage() {
           >
             <Download className="w-4 h-4" /> Excel
           </button>
+          {/* Toggle vista */}
+          <div className="flex border border-border rounded-lg overflow-hidden">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-primary/10 text-primary font-medium">
+              <List className="w-4 h-4" /> Lista
+            </span>
+            <Link
+              to="/pipeline"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted transition-colors"
+            >
+              <Kanban className="w-4 h-4" /> Kanban
+            </Link>
+          </div>
         </div>
       </div>
 
