@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Comercial — Presentación Gerencial | ABAL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ─────────────────────────────────────────────────────────── */
+    :root {
+      --azul:      #1e3a5f;
+      --azul-med:  #2563eb;
+      --azul-claro:#dbeafe;
+      --verde:     #16a34a;
+      --rojo:      #dc2626;
+      --gris:      #6b7280;
+      --gris-bg:   #f8fafc;
+      --borde:     #e2e8f0;
+      --bloque-a:  #3b82f6;
+      --bloque-b:  #8b5cf6;
+      --bloque-c:  #f59e0b;
+      --bloque-d:  #10b981;
+    }
+
+    /* ── Reset y base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: #1e293b;
+      background: #f1f5f9;
+    }
+
+    /* ── Contenedor ────────────────────────────────────────────────────────── */
+    .doc {
+      max-width: 920px;
+      margin: 32px auto;
+      background: #fff;
+      box-shadow: 0 4px 32px rgba(0,0,0,.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* ══ PORTADA ════════════════════════════════════════════════════════════ */
+    .portada {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 60%, #2563eb 100%);
+      color: #fff;
+      padding: 72px 64px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+    .portada::before {
+      content: '';
+      position: absolute;
+      width: 480px; height: 480px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.04);
+      top: -120px; right: -120px;
+    }
+    .portada::after {
+      content: '';
+      position: absolute;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.04);
+      bottom: -80px; left: -80px;
+    }
+    .portada-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      color: rgba(255,255,255,.9);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin-bottom: 36px;
+    }
+    .portada-logo {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.65);
+      margin-bottom: 8px;
+    }
+    .portada-empresa {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,.85);
+      margin-bottom: 40px;
+    }
+    .portada h1 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: -.5px;
+    }
+    .portada h1 span { color: #93c5fd; }
+    .portada-sub {
+      font-size: 18px;
+      font-weight: 400;
+      color: rgba(255,255,255,.8);
+      margin-bottom: 56px;
+    }
+    .portada-meta {
+      display: flex;
+      gap: 32px;
+      font-size: 13px;
+      color: rgba(255,255,255,.7);
+      position: relative; z-index: 1;
+    }
+    .portada-meta strong { color: #fff; display: block; font-size: 14px; }
+
+    /* ── KPI cards portada ─────────────────────────────────────────────────── */
+    .portada-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 40px;
+      position: relative; z-index: 1;
+    }
+    .pk {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .pk-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .pk-label {
+      font-size: 11px;
+      color: rgba(255,255,255,.7);
+      font-weight: 500;
+    }
+
+    /* ══ CUERPO ══════════════════════════════════════════════════════════════ */
+    .body { padding: 56px 64px; }
+
+    /* ── Índice ──────────────────────────────────────────────────────────── */
+    .indice {
+      background: var(--gris-bg);
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 56px;
+    }
+    .indice h3 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gris);
+      margin-bottom: 16px;
+    }
+    .indice ol {
+      columns: 2;
+      column-gap: 32px;
+      list-style: none;
+      counter-reset: idx;
+    }
+    .indice li {
+      counter-increment: idx;
+      padding: 5px 0;
+      font-size: 13.5px;
+      border-bottom: 1px dashed var(--borde);
+    }
+    .indice li::before {
+      content: counter(idx) ". ";
+      color: var(--azul-med);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .indice a {
+      color: #1e293b;
+      text-decoration: none;
+    }
+    .indice a:hover { color: var(--azul-med); }
+
+    /* ── Sección ─────────────────────────────────────────────────────────── */
+    .seccion { margin-bottom: 56px; }
+    .sec-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--azul-claro);
+    }
+    .sec-num {
+      background: var(--azul);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sec-header h2 {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--azul);
+    }
+
+    /* ── Resumen ejecutivo ─────────────────────────────────────────────────── */
+    .resumen p { margin-bottom: 14px; color: #374151; }
+    .resumen p:last-child { margin-bottom: 0; }
+
+    /* ── Problemática ─────────────────────────────────────────────────────── */
+    .problema-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .problema-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .problema-icon {
+      width: 22px; height: 22px;
+      background: var(--rojo);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .problema-icon svg { width: 12px; height: 12px; fill: #fff; }
+    .problema-item p { font-size: 13.5px; color: #7f1d1d; line-height: 1.5; }
+
+    /* ── Objetivos ────────────────────────────────────────────────────────── */
+    .objetivo-general {
+      background: #eff6ff;
+      border-left: 4px solid var(--azul-med);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 14.5px;
+      color: #1e3a5f;
+      font-weight: 500;
+    }
+    .objetivos-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .obj-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      background: var(--gris-bg);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      font-size: 13.5px;
+    }
+    .obj-check {
+      width: 20px; height: 20px;
+      background: var(--verde);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .obj-check svg { width: 11px; height: 11px; fill: #fff; }
+
+    /* ── Tablas genéricas ─────────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      background: var(--azul);
+      color: #fff;
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child  { border-radius: 0 8px 0 0; }
+    tbody tr:nth-child(even) { background: var(--gris-bg); }
+    tbody td { padding: 9px 14px; border-bottom: 1px solid var(--borde); color: #374151; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+    tbody tr:last-child td:last-child  { border-radius: 0 0 8px 0; }
+    .tbl-wrap {
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .tbl-wrap + .tbl-wrap { margin-top: 24px; }
+
+    /* ── Badges de bloque ─────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 100px;
+      color: #fff;
+    }
+    .badge-a { background: var(--bloque-a); }
+    .badge-b { background: var(--bloque-b); }
+    .badge-c { background: var(--bloque-c); color: #1e293b; }
+    .badge-d { background: var(--bloque-d); }
+
+    /* ── Arquitectura ─────────────────────────────────────────────────────── */
+    .arq-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      background: var(--gris-bg);
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 32px 24px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .arq-box {
+      background: #fff;
+      border: 2px solid var(--borde);
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .arq-box-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    .arq-box-label { font-size: 12px; font-weight: 700; color: var(--azul); line-height: 1.3; }
+    .arq-box-sub { font-size: 10.5px; color: var(--gris); margin-top: 2px; }
+    .arq-box.central {
+      border-color: var(--azul-med);
+      background: #eff6ff;
+      min-width: 140px;
+    }
+    .arq-arrow {
+      font-size: 20px;
+      color: var(--gris);
+      padding: 0 6px;
+      font-weight: 300;
+    }
+    .arq-arrow.bidireccional::after { content: ' ↔'; display: none; }
+
+    /* ── Stack table ──────────────────────────────────────────────────────── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stack-card {
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--gris-bg);
+    }
+    .stack-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--gris);
+      margin-bottom: 8px;
+    }
+    .stack-card ul { list-style: none; }
+    .stack-card li {
+      font-size: 13px;
+      color: #374151;
+      padding: 3px 0;
+      border-bottom: 1px dashed var(--borde);
+    }
+    .stack-card li:last-child { border-bottom: none; }
+    .stack-card li::before { content: '▸ '; color: var(--azul-med); font-size: 11px; }
+
+    /* ── Roles ────────────────────────────────────────────────────────────── */
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .rol-card {
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid var(--borde);
+    }
+    .rol-card.gerente   { border-top: 4px solid #7c3aed; background: #faf5ff; }
+    .rol-card.supervisor{ border-top: 4px solid var(--azul-med); background: #eff6ff; }
+    .rol-card.vendedor  { border-top: 4px solid var(--verde); background: #f0fdf4; }
+    .rol-titulo { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    .rol-card.gerente   .rol-titulo { color: #7c3aed; }
+    .rol-card.supervisor .rol-titulo { color: var(--azul-med); }
+    .rol-card.vendedor  .rol-titulo { color: var(--verde); }
+    .rol-card ul { list-style: none; }
+    .rol-card li { font-size: 13px; color: #374151; padding: 4px 0; border-bottom: 1px dashed var(--borde); }
+    .rol-card li:last-child { border-bottom: none; }
+    .rol-card li::before { content: '• '; font-weight: 700; }
+    .rol-card.gerente li::before { color: #7c3aed; }
+    .rol-card.supervisor li::before { color: var(--azul-med); }
+    .rol-card.vendedor li::before { color: var(--verde); }
+
+    /* ── Gantt ────────────────────────────────────────────────────────────── */
+    .gantt-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .gantt-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #374151;
+    }
+    .gantt-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .gantt-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .gantt-table th {
+      background: var(--azul);
+      color: #fff;
+      padding: 8px 12px;
+      font-weight: 600;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .gantt-table th:first-child { border-radius: 8px 0 0 0; width: 120px; }
+    .gantt-table th.sem { text-align: center; width: 80px; }
+    .gantt-table td {
+      border: 1px solid var(--borde);
+      padding: 8px 12px;
+      color: #374151;
+      vertical-align: middle;
+    }
+    .gantt-table td.sem { text-align: center; padding: 4px; }
+    .gantt-cell {
+      border-radius: 4px;
+      height: 22px;
+      display: block;
+      opacity: .85;
+    }
+    .gantt-a { background: var(--bloque-a); }
+    .gantt-b { background: var(--bloque-b); }
+    .gantt-c { background: var(--bloque-c); }
+    .gantt-d { background: var(--bloque-d); }
+
+    /* ── ROI ──────────────────────────────────────────────────────────────── */
+    .roi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .roi-num {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--verde);
+    }
+    td.mejora { color: var(--verde); font-weight: 700; }
+    td.antes  { color: var(--rojo); }
+    td.despues{ color: var(--verde); font-weight: 600; }
+
+    .beneficios-cual {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .bc-item {
+      display: flex;
+      gap: 10px;
+      padding: 14px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: #14532d;
+    }
+
+    /* ── Costos ───────────────────────────────────────────────────────────── */
+    .costo-placeholder {
+      background: #fffbeb;
+      border: 1px dashed #fbbf24;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: #92400e;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    td.total-row { font-weight: 700; color: var(--azul); background: var(--azul-claro) !important; }
+
+    /* ── Equipo ───────────────────────────────────────────────────────────── */
+    .equipo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .equipo-card {
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 24px 20px;
+      text-align: center;
+      background: var(--gris-bg);
+    }
+    .equipo-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--azul-claro);
+      border: 2px dashed var(--azul-med);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 22px;
+    }
+    .equipo-nombre {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--azul);
+      margin-bottom: 4px;
+    }
+    .equipo-rol {
+      font-size: 12.5px;
+      color: var(--gris);
+    }
+    .placeholder-tag {
+      display: inline-block;
+      margin-top: 8px;
+      background: #fef9c3;
+      border: 1px dashed #fbbf24;
+      color: #92400e;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── Screenshots ─────────────────────────────────────────────────────── */
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .screenshot-frame {
+      border: 2px dashed var(--borde);
+      border-radius: 10px;
+      background: var(--gris-bg);
+      aspect-ratio: 16/9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+    .screenshot-frame span { font-size: 28px; }
+    .screenshot-label {
+      font-size: 12px;
+      color: var(--gris);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* ── Próximos pasos ──────────────────────────────────────────────────── */
+    .pasos-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .paso-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      background: var(--gris-bg);
+    }
+    .paso-num {
+      background: var(--azul-med);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .paso-item p { font-size: 13.5px; color: #374151; }
+    .paso-item strong { color: #1e293b; display: block; margin-bottom: 2px; }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .footer {
+      background: var(--azul);
+      color: rgba(255,255,255,.7);
+      text-align: center;
+      font-size: 12px;
+      padding: 24px 32px;
+    }
+    .footer strong { color: #fff; }
+
+    /* ══ PRINT ══════════════════════════════════════════════════════════════ */
+    @media print {
+      body { background: #fff; font-size: 13px; }
+      .doc { margin: 0; box-shadow: none; border-radius: 0; }
+      .portada { padding: 48px 48px 48px; page-break-after: always; }
+      .body { padding: 32px 48px; }
+      .seccion { page-break-inside: avoid; margin-bottom: 36px; }
+      .gantt-table, table { page-break-inside: avoid; }
+      .screenshots-grid, .equipo-grid, .problema-grid,
+      .objetivos-list, .roles-grid, .pasos-list { page-break-inside: avoid; }
+      .portada-kpis { break-inside: avoid; }
+      @page { margin: 18mm 16mm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       PORTADA
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="portada">
+    <div class="portada-badge">Documento Confidencial</div>
+    <div class="portada-logo">ABAL</div>
+    <div class="portada-empresa">ABAL S.A.C - Alimentos Balanceados del Peru</div>
+    <h1>Proyecto <span>CRM</span><br>Comercial</h1>
+    <p class="portada-sub">Sistema de Gestión de Relaciones Comerciales<br>y Seguimiento de Fuerza de Ventas</p>
+    <div class="portada-meta">
+      <div>
+        <strong>Versión</strong>
+        1.0 — Lanzamiento
+      </div>
+      <div>
+        <strong>Fecha</strong>
+        Mayo 2026
+      </div>
+      <div>
+        <strong>Estado</strong>
+        Completado ✓
+      </div>
+      <div>
+        <strong>Clasificación</strong>
+        Uso interno
+      </div>
+    </div>
+    <div class="portada-kpis">
+      <div class="pk">
+        <div class="pk-num">15</div>
+        <div class="pk-label">Módulos implementados</div>
+      </div>
+      <div class="pk">
+        <div class="pk-num">3</div>
+        <div class="pk-label">Roles de acceso</div>
+      </div>
+      <div class="pk">
+        <div class="pk-num">+1,450</div>
+        <div class="pk-label">Clientes registrados</div>
+      </div>
+      <div class="pk">
+        <div class="pk-num">100%</div>
+        <div class="pk-label">Datos en tiempo real</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CUERPO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="body">
+
+    <!-- Índice -->
+    <div class="indice">
+      <h3>Contenido</h3>
+      <ol>
+        <li><a href="#resumen">Resumen Ejecutivo</a></li>
+        <li><a href="#problematica">Problemática</a></li>
+        <li><a href="#objetivos">Objetivos del Proyecto</a></li>
+        <li><a href="#alcance">Alcance del Sistema</a></li>
+        <li><a href="#arquitectura">Arquitectura Tecnológica</a></li>
+        <li><a href="#roles">Roles y Control de Acceso</a></li>
+        <li><a href="#fases">Fases de Implementación</a></li>
+        <li><a href="#cronograma">Cronograma</a></li>
+        <li><a href="#roi">ROI y Beneficios Esperados</a></li>
+        <li><a href="#costos">Costos e Inversión</a></li>
+        <li><a href="#equipo">Equipo del Proyecto</a></li>
+        <li><a href="#capturas">Capturas de Pantalla</a></li>
+        <li><a href="#pasos">Próximos Pasos</a></li>
+      </ol>
+    </div>
+
+    <!-- ── 1. RESUMEN EJECUTIVO ─────────────────────────────────────────── -->
+    <div class="seccion" id="resumen">
+      <div class="sec-header">
+        <div class="sec-num">1</div>
+        <h2>Resumen Ejecutivo</h2>
+      </div>
+      <div class="resumen">
+        <p>
+          ABAL S.A.C - Alimentos Balanceados del Peru opera una red comercial distribuida en múltiples zonas del país, con una fuerza de ventas que atiende a más de 1,450 clientes activos. Hasta la implementación del presente proyecto, el seguimiento comercial dependía de hojas de cálculo individuales, Google Sheets compartidas sin control de versiones y reportes manuales elaborados por cada vendedor, lo que generaba inconsistencias, pérdida de información y retrasos en la toma de decisiones gerenciales.
+        </p>
+        <p>
+          El <strong>CRM Comercial</strong> es una aplicación web desarrollada a medida que centraliza toda la gestión de la fuerza de ventas: clientes, prospectos, facturas, metas, KPIs y actividad de campo. El sistema se integra directamente con las fuentes de datos existentes (Google Sheets, archivos Excel del ERP) y opera sobre infraestructura en la nube (Supabase + Vercel), garantizando disponibilidad continua sin inversión en servidores propios.
+        </p>
+        <p>
+          El proyecto fue diseñado e implementado en <strong>15 fases</strong>, abarcando desde la infraestructura base y la importación de datos históricos hasta funcionalidades avanzadas como detección automática de clientes inactivos, seguimiento de prospectos con inteligencia de similitud y sincronización diaria automática de maestros. El sistema opera con tres niveles de acceso: Gerente, Supervisor y Vendedor, con seguridad a nivel de filas (RLS) que garantiza que cada usuario vea únicamente la información que le corresponde.
+        </p>
+        <p>
+          El resultado es una plataforma comercial que elimina el trabajo manual repetitivo, reduce el tiempo de reporte de KPIs de horas a minutos y proporciona a gerencia visibilidad completa y en tiempo real del desempeño comercial de la empresa.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── 2. PROBLEMÁTICA ─────────────────────────────────────────────── -->
+    <div class="seccion" id="problematica">
+      <div class="sec-header">
+        <div class="sec-num">2</div>
+        <h2>Problemática</h2>
+      </div>
+      <div class="problema-grid">
+        <div class="problema-item">
+          <div class="problema-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+          </div>
+          <p>Seguimiento de ventas en <strong>hojas Excel individuales</strong> sin consolidación ni trazabilidad histórica compartida</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+          </div>
+          <p><strong>Sin visibilidad centralizada</strong> de prospectos captados en visitas de campo — pérdida de oportunidades comerciales</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+          </div>
+          <p>Cálculo <strong>manual de KPIs por vendedor</strong> cada mes — proceso que tomaba ~3 horas y era propenso a errores</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+          </div>
+          <p>Maestros de <strong>clientes, productos y metas en Google Sheets</strong> sin integración al flujo comercial</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+          </div>
+          <p>Imposible identificar <strong>clientes que dejaron de comprar</strong> sin revisión manual hoja por hoja</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+          </div>
+          <p><strong>Sin registro de llamadas, visitas ni seguimientos</strong> por cliente — imposible auditar la actividad comercial</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. OBJETIVOS ────────────────────────────────────────────────── -->
+    <div class="seccion" id="objetivos">
+      <div class="sec-header">
+        <div class="sec-num">3</div>
+        <h2>Objetivos del Proyecto</h2>
+      </div>
+      <div class="objetivo-general">
+        <strong>Objetivo General:</strong> Digitalizar y centralizar la gestión comercial de la fuerza de ventas de ABAL, proporcionando visibilidad en tiempo real a gerencia, supervisores y vendedores desde un único sistema integrado.
+      </div>
+      <div class="objetivos-list">
+        <div class="obj-item">
+          <div class="obj-check">
+            <svg viewBox="0 0 20 20"><path d="M16.7 5.3a1 1 0 00-1.4 0L8 12.6 4.7 9.3a1 1 0 00-1.4 1.4l4 4a1 1 0 001.4 0l8-8a1 1 0 000-1.4z"/></svg>
+          </div>
+          <span>Reducir el tiempo de reporte mensual de KPIs de ~3 horas a menos de 5 minutos</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check">
+            <svg viewBox="0 0 20 20"><path d="M16.7 5.3a1 1 0 00-1.4 0L8 12.6 4.7 9.3a1 1 0 00-1.4 1.4l4 4a1 1 0 001.4 0l8-8a1 1 0 000-1.4z"/></svg>
+          </div>
+          <span>Registrar y dar seguimiento al 100% de prospectos captados en campo</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check">
+            <svg viewBox="0 0 20 20"><path d="M16.7 5.3a1 1 0 00-1.4 0L8 12.6 4.7 9.3a1 1 0 00-1.4 1.4l4 4a1 1 0 001.4 0l8-8a1 1 0 000-1.4z"/></svg>
+          </div>
+          <span>Detectar automáticamente clientes inactivos (+60 días sin compra) con alerta visual</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check">
+            <svg viewBox="0 0 20 20"><path d="M16.7 5.3a1 1 0 00-1.4 0L8 12.6 4.7 9.3a1 1 0 00-1.4 1.4l4 4a1 1 0 001.4 0l8-8a1 1 0 000-1.4z"/></svg>
+          </div>
+          <span>Sincronizar maestros (clientes, productos, metas) diariamente sin intervención manual</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check">
+            <svg viewBox="0 0 20 20"><path d="M16.7 5.3a1 1 0 00-1.4 0L8 12.6 4.7 9.3a1 1 0 00-1.4 1.4l4 4a1 1 0 001.4 0l8-8a1 1 0 000-1.4z"/></svg>
+          </div>
+          <span>Brindar visibilidad de performance comercial a gerencia en tiempo real</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check">
+            <svg viewBox="0 0 20 20"><path d="M16.7 5.3a1 1 0 00-1.4 0L8 12.6 4.7 9.3a1 1 0 00-1.4 1.4l4 4a1 1 0 001.4 0l8-8a1 1 0 000-1.4z"/></svg>
+          </div>
+          <span>Registrar toda la actividad comercial (llamadas, visitas, notas) con auditoría completa</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4. ALCANCE ──────────────────────────────────────────────────── -->
+    <div class="seccion" id="alcance">
+      <div class="sec-header">
+        <div class="sec-num">4</div>
+        <h2>Alcance del Sistema — Módulos Implementados</h2>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Módulo</th>
+              <th>Descripción</th>
+              <th>Usuarios</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Dashboard</strong></td>
+              <td>KPI cards en tiempo real, gráficas de ventas semanales y comparativa mensual, top 5 clientes</td>
+              <td>Todos</td>
+            </tr>
+            <tr>
+              <td><strong>Clientes</strong></td>
+              <td>Listado completo con semáforo de salud, filtros y detalle con historial de facturas</td>
+              <td>Todos</td>
+            </tr>
+            <tr>
+              <td><strong>Vendedores</strong></td>
+              <td>Performance vs metas por semana, top clientes y líneas de producto por vendedor</td>
+              <td>Gerente / Supervisor</td>
+            </tr>
+            <tr>
+              <td><strong>Prospectos</strong></td>
+              <td>Seguimiento de clientes potenciales captados en campo, estados y algoritmo de match con clientes</td>
+              <td>Todos</td>
+            </tr>
+            <tr>
+              <td><strong>KPIs</strong></td>
+              <td>Cumplimiento de metas, clientes inactivos, exportación a Excel de reportes</td>
+              <td>Todos</td>
+            </tr>
+            <tr>
+              <td><strong>Actividad / Call Center</strong></td>
+              <td>Registro de llamadas, notas y seguimientos por cliente o prospecto; feed de actividad global</td>
+              <td>Todos</td>
+            </tr>
+            <tr>
+              <td><strong>Importar Datos</strong></td>
+              <td>ETL browser-side para facturas Excel del ERP, importación de visitas y maestros con historial</td>
+              <td>Gerente / Supervisor</td>
+            </tr>
+            <tr>
+              <td><strong>Búsqueda Global</strong></td>
+              <td>Búsqueda instantánea de clientes y prospectos con atajo Ctrl+K desde cualquier pantalla</td>
+              <td>Todos</td>
+            </tr>
+            <tr>
+              <td><strong>Exportación Excel</strong></td>
+              <td>Descarga de reportes: KPIs por vendedor, clientes inactivos, prospectos abiertos</td>
+              <td>Gerente / Supervisor</td>
+            </tr>
+            <tr>
+              <td><strong>Sync Automático</strong></td>
+              <td>Sincronización diaria de maestros desde Google Sheets a las 6:00 AM (sin intervención manual)</td>
+              <td>Sistema</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 5. ARQUITECTURA ─────────────────────────────────────────────── -->
+    <div class="seccion" id="arquitectura">
+      <div class="sec-header">
+        <div class="sec-num">5</div>
+        <h2>Arquitectura Tecnológica</h2>
+      </div>
+
+      <div class="arq-diagram">
+        <div class="arq-box">
+          <span class="arq-box-icon">📊</span>
+          <div class="arq-box-label">Google Sheets</div>
+          <div class="arq-box-sub">Maestros &amp; Metas</div>
+        </div>
+        <div class="arq-arrow">→</div>
+        <div class="arq-box">
+          <span class="arq-box-icon">⚡</span>
+          <div class="arq-box-label">Edge Functions</div>
+          <div class="arq-box-sub">Supabase Deno</div>
+        </div>
+        <div class="arq-arrow">⇄</div>
+        <div class="arq-box central">
+          <span class="arq-box-icon">🗄️</span>
+          <div class="arq-box-label">Supabase</div>
+          <div class="arq-box-sub">PostgreSQL + Auth + RLS</div>
+        </div>
+        <div class="arq-arrow">⇄</div>
+        <div class="arq-box">
+          <span class="arq-box-icon">⚛️</span>
+          <div class="arq-box-label">React SPA</div>
+          <div class="arq-box-sub">Vite + TypeScript</div>
+        </div>
+        <div class="arq-arrow">→</div>
+        <div class="arq-box">
+          <span class="arq-box-icon">🚀</span>
+          <div class="arq-box-label">Vercel</div>
+          <div class="arq-box-sub">CDN global</div>
+        </div>
+      </div>
+
+      <div class="stack-grid">
+        <div class="stack-card">
+          <div class="stack-card-title">Frontend</div>
+          <ul>
+            <li>React 19 + TypeScript</li>
+            <li>Vite (build tool)</li>
+            <li>Tailwind CSS</li>
+            <li>shadcn/ui (componentes)</li>
+            <li>Recharts (gráficas)</li>
+            <li>XLSX (Excel browser-side)</li>
+          </ul>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-title">Backend &amp; Base de Datos</div>
+          <ul>
+            <li>Supabase (PostgreSQL 15)</li>
+            <li>Auth JWT integrado</li>
+            <li>Row Level Security (RLS)</li>
+            <li>Edge Functions (Deno)</li>
+            <li>pg_cron (sync automático)</li>
+            <li>pg_net (HTTP desde SQL)</li>
+          </ul>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-title">Hosting &amp; Seguridad</div>
+          <ul>
+            <li>Vercel (CDN global)</li>
+            <li>HTTPS obligatorio</li>
+            <li>Variables de entorno secretas</li>
+            <li>GitHub Actions CI/CD</li>
+            <li>RLS por rol y vendedor</li>
+            <li>Código abierto en GitHub</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 6. ROLES ────────────────────────────────────────────────────── -->
+    <div class="seccion" id="roles">
+      <div class="sec-header">
+        <div class="sec-num">6</div>
+        <h2>Roles y Control de Acceso</h2>
+      </div>
+      <div class="roles-grid">
+        <div class="rol-card gerente">
+          <div class="rol-titulo">👔 Gerente</div>
+          <ul>
+            <li>Todos los clientes y zonas</li>
+            <li>Todos los vendedores</li>
+            <li>Todos los prospectos</li>
+            <li>KPIs globales de empresa</li>
+            <li>Actividad completa</li>
+            <li>Reportes y exportaciones</li>
+          </ul>
+        </div>
+        <div class="rol-card supervisor">
+          <div class="rol-titulo">🔍 Supervisor</div>
+          <ul>
+            <li>Todo el sistema (lectura)</li>
+            <li>Aprobar match de prospectos</li>
+            <li>Cambiar estado de prospectos</li>
+            <li>Importar datos (ETL)</li>
+            <li>Exportar reportes</li>
+            <li>Call center y actividad</li>
+          </ul>
+        </div>
+        <div class="rol-card vendedor">
+          <div class="rol-titulo">🧑‍💼 Vendedor</div>
+          <ul>
+            <li>Sus clientes asignados</li>
+            <li>Sus prospectos propios</li>
+            <li>Sus facturas y visitas</li>
+            <li>Sus KPIs personales</li>
+            <li>Registrar actividad</li>
+            <li>Búsqueda (datos filtrados)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 7. FASES ───────────────────────────────────────────────────── -->
+    <div class="seccion" id="fases">
+      <div class="sec-header">
+        <div class="sec-num">7</div>
+        <h2>Fases de Implementación</h2>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fase</th>
+              <th>Bloque</th>
+              <th>Módulo</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>F1</strong></td>
+              <td><span class="badge badge-a">A — Infraestructura</span></td>
+              <td>Setup &amp; Auth</td>
+              <td>Schema PostgreSQL, autenticación, roles RLS, routing protegido</td>
+            </tr>
+            <tr>
+              <td><strong>F2</strong></td>
+              <td><span class="badge badge-a">A — Infraestructura</span></td>
+              <td>ETL &amp; Importación</td>
+              <td>Procesamiento de facturas Excel, integración con Google Sheets, Edge Functions</td>
+            </tr>
+            <tr>
+              <td><strong>F3</strong></td>
+              <td><span class="badge badge-b">B — Módulos Core</span></td>
+              <td>Clientes</td>
+              <td>Lista con filtros, detalle con historial de facturas y visitas por cliente</td>
+            </tr>
+            <tr>
+              <td><strong>F4</strong></td>
+              <td><span class="badge badge-b">B — Módulos Core</span></td>
+              <td>Vendedores</td>
+              <td>Performance vs metas semanales, desglose por línea de producto</td>
+            </tr>
+            <tr>
+              <td><strong>F5</strong></td>
+              <td><span class="badge badge-b">B — Módulos Core</span></td>
+              <td>Prospectos</td>
+              <td>Captación de campo, estados (nuevo→seguimiento→convertido→perdido), algoritmo de match por trigramas</td>
+            </tr>
+            <tr>
+              <td><strong>F6</strong></td>
+              <td><span class="badge badge-b">B — Módulos Core</span></td>
+              <td>KPIs Automáticos</td>
+              <td>Cumplimiento de metas, clientes inactivos, ranking de vendedores por zona</td>
+            </tr>
+            <tr>
+              <td><strong>F7</strong></td>
+              <td><span class="badge badge-c">C — Experiencia</span></td>
+              <td>Actividad / Call Center</td>
+              <td>Timeline de actividad por cliente/prospecto, feed global, registro de llamadas y notas</td>
+            </tr>
+            <tr>
+              <td><strong>F8</strong></td>
+              <td><span class="badge badge-c">C — Experiencia</span></td>
+              <td>Auto-conversión</td>
+              <td>Conversión automática de prospecto a cliente al detectar primera factura en el sistema</td>
+            </tr>
+            <tr>
+              <td><strong>F9</strong></td>
+              <td><span class="badge badge-c">C — Experiencia</span></td>
+              <td>Semáforo de Salud</td>
+              <td>Indicador visual (verde/amarillo/rojo) según días transcurridos desde última compra</td>
+            </tr>
+            <tr>
+              <td><strong>F10</strong></td>
+              <td><span class="badge badge-d">D — Inteligencia</span></td>
+              <td>Dashboard Analítico</td>
+              <td>Gráficas de ventas semanales (barras) y comparativa mensual (línea) con recharts</td>
+            </tr>
+            <tr>
+              <td><strong>F11</strong></td>
+              <td><span class="badge badge-d">D — Inteligencia</span></td>
+              <td>Historial de Importaciones</td>
+              <td>Auditoría completa de cada importación: usuario, fecha, filas procesadas/omitidas</td>
+            </tr>
+            <tr>
+              <td><strong>F12</strong></td>
+              <td><span class="badge badge-d">D — Inteligencia</span></td>
+              <td>Exportación Excel</td>
+              <td>Descarga de reportes KPIs, clientes inactivos y prospectos directamente desde el browser</td>
+            </tr>
+            <tr>
+              <td><strong>F13</strong></td>
+              <td><span class="badge badge-d">D — Inteligencia</span></td>
+              <td>Búsqueda Global</td>
+              <td>Búsqueda instantánea Ctrl+K en clientes y prospectos con debounce 300ms</td>
+            </tr>
+            <tr>
+              <td><strong>F14</strong></td>
+              <td><span class="badge badge-d">D — Inteligencia</span></td>
+              <td>Filtros Avanzados</td>
+              <td>Filtros combinables de zona, especie, vendedor y estado de match en prospectos</td>
+            </tr>
+            <tr>
+              <td><strong>F15</strong></td>
+              <td><span class="badge badge-d">D — Inteligencia</span></td>
+              <td>Sync Automático</td>
+              <td>Cron diario 6:00 AM vía pg_cron + pg_net — sincroniza maestros sin intervención manual</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 8. CRONOGRAMA ───────────────────────────────────────────────── -->
+    <div class="seccion" id="cronograma">
+      <div class="sec-header">
+        <div class="sec-num">8</div>
+        <h2>Cronograma</h2>
+      </div>
+      <div class="gantt-legend">
+        <div class="gantt-legend-item">
+          <div class="gantt-dot" style="background:var(--bloque-a)"></div> Bloque A — Infraestructura
+        </div>
+        <div class="gantt-legend-item">
+          <div class="gantt-dot" style="background:var(--bloque-b)"></div> Bloque B — Módulos Core
+        </div>
+        <div class="gantt-legend-item">
+          <div class="gantt-dot" style="background:var(--bloque-c)"></div> Bloque C — Experiencia
+        </div>
+        <div class="gantt-legend-item">
+          <div class="gantt-dot" style="background:var(--bloque-d)"></div> Bloque D — Inteligencia
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="gantt-table">
+          <thead>
+            <tr>
+              <th>Bloque / Fase</th>
+              <th class="sem">Sem 1</th>
+              <th class="sem">Sem 2</th>
+              <th class="sem">Sem 3</th>
+              <th class="sem">Sem 4</th>
+              <th class="sem">Sem 5</th>
+              <th class="sem">Sem 6</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-a">A</span> F1 — Setup &amp; Auth</td>
+              <td class="sem"><span class="gantt-cell gantt-a"></span></td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-a">A</span> F2 — ETL &amp; Importación</td>
+              <td class="sem"><span class="gantt-cell gantt-a"></span></td>
+              <td class="sem"><span class="gantt-cell gantt-a"></span></td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-b">B</span> F3 — Clientes</td>
+              <td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-b"></span></td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-b">B</span> F4 — Vendedores</td>
+              <td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-b"></span></td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-b">B</span> F5 — Prospectos</td>
+              <td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-b"></span></td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-b">B</span> F6 — KPIs Automáticos</td>
+              <td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-b"></span></td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-c">C</span> F7 — Actividad / Call Center</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-c"></span></td>
+              <td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-c">C</span> F8 — Auto-conversión</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-c"></span></td>
+              <td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-c">C</span> F9 — Semáforo de Salud</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-c"></span></td>
+              <td class="sem"></td><td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-d">D</span> F10 — Dashboard Analítico</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-d"></span></td>
+              <td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-d">D</span> F11 — Historial Importaciones</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-d"></span></td>
+              <td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-d">D</span> F12 — Exportación Excel</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-d"></span></td>
+              <td class="sem"></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-d">D</span> F13 — Búsqueda Global</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-d"></span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-d">D</span> F14 — Filtros Avanzados</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-d"></span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-d">D</span> F15 — Sync Automático</td>
+              <td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td><td class="sem"></td>
+              <td class="sem"><span class="gantt-cell gantt-d"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 9. ROI ──────────────────────────────────────────────────────── -->
+    <div class="seccion" id="roi">
+      <div class="sec-header">
+        <div class="sec-num">9</div>
+        <h2>ROI y Beneficios Esperados</h2>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Indicador</th>
+              <th>Antes del CRM</th>
+              <th>Con el CRM</th>
+              <th>Mejora</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tiempo de reporte KPIs mensual</td>
+              <td class="antes">~3 horas (manual)</td>
+              <td class="despues">~5 minutos (automático)</td>
+              <td class="mejora">−97%</td>
+            </tr>
+            <tr>
+              <td>Prospectos de campo sin seguimiento</td>
+              <td class="antes">~100% (no registrados)</td>
+              <td class="despues">0% (todos en sistema)</td>
+              <td class="mejora">−100%</td>
+            </tr>
+            <tr>
+              <td>Detección de clientes inactivos</td>
+              <td class="antes">Revisión manual semanal</td>
+              <td class="despues">Automático (semáforo)</td>
+              <td class="mejora">Inmediato</td>
+            </tr>
+            <tr>
+              <td>Actualización de maestros</td>
+              <td class="antes">Manual (semanal o ad-hoc)</td>
+              <td class="despues">Diario automático 6:00 AM</td>
+              <td class="mejora">7× más frecuente</td>
+            </tr>
+            <tr>
+              <td>Visibilidad gerencial de performance</td>
+              <td class="antes">Reportes PDF con días de retraso</td>
+              <td class="despues">Dashboard en tiempo real</td>
+              <td class="mejora">Instantánea</td>
+            </tr>
+            <tr>
+              <td>Trazabilidad de actividad comercial</td>
+              <td class="antes">Sin registro</td>
+              <td class="despues">Auditoría completa con autor y fecha</td>
+              <td class="mejora">100% nuevo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="beneficios-cual">
+        <div class="bc-item">
+          <span>✓</span>
+          <span><strong>Trazabilidad total:</strong> cada acción comercial queda registrada con usuario, fecha y detalle</span>
+        </div>
+        <div class="bc-item">
+          <span>✓</span>
+          <span><strong>Decisiones basadas en datos:</strong> gerencia accede a métricas reales sin esperar reportes</span>
+        </div>
+        <div class="bc-item">
+          <span>✓</span>
+          <span><strong>Retención de clientes:</strong> semáforo de salud permite actuar antes de perder un cliente inactivo</span>
+        </div>
+        <div class="bc-item">
+          <span>✓</span>
+          <span><strong>Conversión de prospectos:</strong> seguimiento estructurado aumenta la tasa de cierre de nuevos clientes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 10. COSTOS ─────────────────────────────────────────────────── -->
+    <div class="seccion" id="costos">
+      <div class="sec-header">
+        <div class="sec-num">10</div>
+        <h2>Costos e Inversión</h2>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Infraestructura</th>
+              <th>Proveedor</th>
+              <th>Plan</th>
+              <th>Costo mensual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Base de datos + Auth + Edge Functions</td>
+              <td>Supabase</td>
+              <td>Free tier (hasta 500MB / 50,000 usuarios)</td>
+              <td style="color:var(--verde);font-weight:700">$0 / mes</td>
+            </tr>
+            <tr>
+              <td>Hosting &amp; CDN global</td>
+              <td>Vercel</td>
+              <td>Hobby (proyectos comerciales internos)</td>
+              <td style="color:var(--verde);font-weight:700">$0 / mes</td>
+            </tr>
+            <tr>
+              <td>Datos maestros (clientes, metas)</td>
+              <td>Google Workspace</td>
+              <td>Plan existente de la empresa</td>
+              <td style="color:var(--verde);font-weight:700">$0 adicional</td>
+            </tr>
+            <tr>
+              <td>Repositorio de código</td>
+              <td>GitHub</td>
+              <td>Free (repositorio privado)</td>
+              <td style="color:var(--verde);font-weight:700">$0 / mes</td>
+            </tr>
+            <tr>
+              <td class="total-row" colspan="3"><strong>Total infraestructura mensual</strong></td>
+              <td class="total-row"><strong>$0 / mes</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tbl-wrap" style="margin-top:20px">
+        <table>
+          <thead>
+            <tr>
+              <th>Desarrollo</th>
+              <th>Detalle</th>
+              <th>Horas</th>
+              <th>Costo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Análisis funcional y diseño de sistema</td>
+              <td>Relevamiento de procesos, definición de módulos y schema</td>
+              <td style="text-align:center">[___]</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td>Desarrollo frontend (F1–F15)</td>
+              <td>React + TypeScript, 15 módulos, hooks, ETL, exportación</td>
+              <td style="text-align:center">[___]</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td>Configuración de infraestructura</td>
+              <td>Supabase, RLS, Edge Functions, Vercel, GitHub Actions</td>
+              <td style="text-align:center">[___]</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td>Pruebas y capacitación</td>
+              <td>Validación con usuarios finales, ajustes post-lanzamiento</td>
+              <td style="text-align:center">[___]</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td class="total-row" colspan="2"><strong>Total inversión en desarrollo</strong></td>
+              <td class="total-row" style="text-align:center"><strong>[___]</strong></td>
+              <td class="total-row"><strong>S/. [___________]</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="costo-placeholder">
+        ⚠️ Completar los valores de horas y costo de desarrollo antes de presentar este documento a gerencia.
+      </div>
+    </div>
+
+    <!-- ── 11. EQUIPO ─────────────────────────────────────────────────── -->
+    <div class="seccion" id="equipo">
+      <div class="sec-header">
+        <div class="sec-num">11</div>
+        <h2>Equipo del Proyecto</h2>
+      </div>
+      <div class="equipo-grid">
+        <div class="equipo-card">
+          <div class="equipo-avatar">👔</div>
+          <div class="equipo-nombre">[Nombre Completo]</div>
+          <div class="equipo-rol">Gerente de Proyecto</div>
+          <span class="placeholder-tag">completar</span>
+        </div>
+        <div class="equipo-card">
+          <div class="equipo-avatar">💻</div>
+          <div class="equipo-nombre">[Nombre Completo]</div>
+          <div class="equipo-rol">Desarrollador Principal</div>
+          <span class="placeholder-tag">completar</span>
+        </div>
+        <div class="equipo-card">
+          <div class="equipo-avatar">📋</div>
+          <div class="equipo-nombre">[Nombre Completo]</div>
+          <div class="equipo-rol">Analista Funcional / Supervisor Comercial</div>
+          <span class="placeholder-tag">completar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 12. CAPTURAS ───────────────────────────────────────────────── -->
+    <div class="seccion" id="capturas">
+      <div class="sec-header">
+        <div class="sec-num">12</div>
+        <h2>Capturas de Pantalla</h2>
+      </div>
+      <div class="screenshots-grid">
+        <div>
+          <div class="screenshot-frame">
+            <span>📊</span>
+            <p>Pegar captura aquí</p>
+          </div>
+          <p class="screenshot-label">Dashboard Principal — KPIs y gráficas de ventas</p>
+        </div>
+        <div>
+          <div class="screenshot-frame">
+            <span>👥</span>
+            <p>Pegar captura aquí</p>
+          </div>
+          <p class="screenshot-label">Módulo Clientes — Semáforo de salud</p>
+        </div>
+        <div>
+          <div class="screenshot-frame">
+            <span>🔍</span>
+            <p>Pegar captura aquí</p>
+          </div>
+          <p class="screenshot-label">Detalle de Prospecto — Algoritmo de match</p>
+        </div>
+        <div>
+          <div class="screenshot-frame">
+            <span>📈</span>
+            <p>Pegar captura aquí</p>
+          </div>
+          <p class="screenshot-label">KPIs por Vendedor — Cumplimiento de metas</p>
+        </div>
+        <div>
+          <div class="screenshot-frame">
+            <span>📂</span>
+            <p>Pegar captura aquí</p>
+          </div>
+          <p class="screenshot-label">Importar Datos — ETL de facturas Excel</p>
+        </div>
+        <div>
+          <div class="screenshot-frame">
+            <span>📞</span>
+            <p>Pegar captura aquí</p>
+          </div>
+          <p class="screenshot-label">Call Center / Actividad — Feed global</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 13. PRÓXIMOS PASOS ─────────────────────────────────────────── -->
+    <div class="seccion" id="pasos">
+      <div class="sec-header">
+        <div class="sec-num">13</div>
+        <h2>Próximos Pasos</h2>
+      </div>
+      <div class="pasos-list">
+        <div class="paso-item">
+          <div class="paso-num">1</div>
+          <p><strong>Ejecutar migraciones en Supabase</strong>Aplicar tablas de historial de importaciones y configuración de cron automático en el SQL Editor</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">2</div>
+          <p><strong>Configurar sync automático</strong>Habilitar extensiones pg_cron y pg_net en Supabase Dashboard y configurar la clave de servicio</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">3</div>
+          <p><strong>Deploy a producción</strong>Conectar repositorio GitHub a Vercel y configurar variables de entorno para acceso público</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">4</div>
+          <p><strong>Capacitación de usuarios</strong>Sesión de onboarding con vendedores y supervisores: importación de datos, registro de prospectos y actividad</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">5</div>
+          <p><strong>Importación de datos históricos</strong>Cargar facturas de meses anteriores para disponer de comparativas históricas en el dashboard</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">6</div>
+          <p><strong>Monitoreo post-lanzamiento</strong>Seguimiento de las primeras 4 semanas: importaciones, prospectos, actividad y feedback de vendedores</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>ABAL S.A.C - Alimentos Balanceados del Peru</strong> — CRM Comercial v1.0<br>
+    Documento confidencial de uso interno. Mayo 2026.
+  </div>
+
+</div><!-- /doc -->
+
+</body>
+</html>

@@ -92,6 +92,14 @@ Deno.serve(async (req) => {
     ? { anio: Number(body.anio), mes: String(body.mes).toUpperCase() }
     : mesAnterior()
 
+  // Validación de inputs
+  if (!Number.isInteger(anio) || anio < 2020 || anio > 2100) {
+    return new Response(
+      JSON.stringify({ ok: false, error: `Año inválido: "${anio}". Debe ser un entero entre 2020 y 2100.` }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
   if (!MESES_NUM[mes]) {
     return new Response(
       JSON.stringify({ ok: false, error: `Mes inválido: "${mes}". Usar nombre en español en mayúsculas.` }),

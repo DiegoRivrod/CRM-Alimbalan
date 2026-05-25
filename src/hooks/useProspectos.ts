@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ export interface ClienteSimilar {
   similitud: number // 0-1
 }
 
-// ── Utilidades de similitud ──────────────────────────────────────────────────
+// ── Utilidades de similitud (puras, no necesitan React) ──────────────────────
 
 function normalizarNombre(s: string): string {
   return s
@@ -107,122 +108,123 @@ export function buscarClientesSimilares(
     .slice(0, topN)
 }
 
-// ── Hook: lista de prospectos ────────────────────────────────────────────────
+// ── useProspectos — lista filtrable ──────────────────────────────────────────
 
-export function useProspectos(filtroEstado: EstadoProspecto | 'todos' = 'todos', filtroFuerza?: string) {
-  const [prospectos, setProspectos] = useState<ProspectoRow[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState<string | null>(null)
+export function useProspectos(
+  filtroEstado: EstadoProspecto | 'todos' = 'todos',
+  filtroFuerza?: string,
+) {
+  const q = useQuery({
+    queryKey: ['prospectos', 'lista', { estado: filtroEstado, fuerza: filtroFuerza ?? null }],
+    queryFn: async (): Promise<ProspectoRow[]> => {
+      let req = supabase
+        .from('prospectos')
+        .select(`
+          id, nombre, contacto, fuerza_de_venta, zona, especie,
+          potencial_tn, marcas_consume, estado,
+          idcliente_sugerido, match_confianza, match_aprobado,
+          match_aprobado_at, primera_factura_docventa,
+          fecha_conversion, created_at, updated_at, visita_id
+        `)
+        .order('created_at', { ascending: false })
 
-  const cargar = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+      if (filtroEstado !== 'todos') req = req.eq('estado', filtroEstado)
+      if (filtroFuerza)              req = req.eq('fuerza_de_venta', filtroFuerza)
 
-    let q = supabase
-      .from('prospectos')
-      .select(`
-        id, nombre, contacto, fuerza_de_venta, zona, especie,
-        potencial_tn, marcas_consume, estado,
-        idcliente_sugerido, match_confianza, match_aprobado,
-        match_aprobado_at, primera_factura_docventa,
-        fecha_conversion, created_at, updated_at, visita_id
-      `)
-      .order('created_at', { ascending: false })
+      const { data: rawData, error } = await req
+      if (error) throw new Error(error.message)
 
-    if (filtroEstado !== 'todos') q = q.eq('estado', filtroEstado)
-    if (filtroFuerza)              q = q.eq('fuerza_de_venta', filtroFuerza)
+      const rows = (rawData ?? []) as ProspectoRow[]
 
-    const { data: rawData, error: err } = await q
-    if (err) { setError(err.message); setLoading(false); return }
+      // Enriquecer con nombre del cliente sugerido en una segunda query
+      const ids = [...new Set(rows.map(p => p.idcliente_sugerido).filter(Boolean))] as string[]
+      const nombresPorId: Record<string, string> = {}
 
-    const rows = (rawData ?? []) as ProspectoRow[]
+      if (ids.length > 0) {
+        const { data: clientes } = await supabase
+          .from('clientes')
+          .select('idcliente, nombre')
+          .in('idcliente', ids)
+        ;(clientes as Array<{ idcliente: string; nombre: string }> ?? [])
+          .forEach(c => { nombresPorId[c.idcliente] = c.nombre })
+      }
 
-    // Enriquecer con nombre del cliente sugerido en una segunda query
-    const ids = [...new Set(rows.map(p => p.idcliente_sugerido).filter(Boolean))] as string[]
-    const nombresPorId: Record<string, string> = {}
-
-    if (ids.length > 0) {
-      const { data: clientes } = await supabase
-        .from('clientes')
-        .select('idcliente, nombre')
-        .in('idcliente', ids)
-      ;(clientes as Array<{ idcliente: string; nombre: string }> ?? [])
-        .forEach(c => { nombresPorId[c.idcliente] = c.nombre })
-    }
-
-    setProspectos(
-      rows.map(p => ({
+      return rows.map(p => ({
         ...p,
         estado: p.estado as EstadoProspecto,
         cliente_sugerido_nombre: p.idcliente_sugerido ? nombresPorId[p.idcliente_sugerido] ?? null : null,
       }))
-    )
-    setLoading(false)
-  }, [filtroEstado, filtroFuerza])
+    },
+  })
 
-  useEffect(() => { cargar() }, [cargar])
-
-  return { prospectos, loading, error, recargar: cargar }
+  return {
+    prospectos: q.data ?? [],
+    loading: q.isLoading,
+    error: q.error ? q.error.message : null,
+    recargar: () => q.refetch(),
+  }
 }
 
-// ── Hook: detalle de un prospecto ────────────────────────────────────────────
+// ── useProspectoDetalle — detalle con visita y cliente sugerido ──────────────
 
 export function useProspectoDetalle(id: string) {
-  const [prospecto, setProspecto] = useState<ProspectoDetalle | null>(null)
-  const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState<string | null>(null)
+  const q = useQuery({
+    queryKey: ['prospectos', 'detalle', id],
+    enabled: !!id,
+    queryFn: async (): Promise<ProspectoDetalle> => {
+      const { data: rawP, error } = await supabase
+        .from('prospectos')
+        .select('*')
+        .eq('id', id)
+        .single()
 
-  const cargar = useCallback(async () => {
-    if (!id) return
-    setLoading(true)
-    setError(null)
+      if (error || !rawP) throw new Error(error?.message ?? 'No encontrado')
 
-    const { data: rawP, error: err } = await supabase
-      .from('prospectos')
-      .select('*')
-      .eq('id', id)
-      .single()
+      const p = rawP as ProspectoRow
 
-    if (err || !rawP) { setError(err?.message ?? 'No encontrado'); setLoading(false); return }
+      const [visRes, cliRes] = await Promise.all([
+        p.visita_id
+          ? supabase.from('visitas')
+              .select('marca_temporal,localizacion,especie,tipo_cliente,animales,granjas,potencial_consumo_tn,marcas_consume,lineas_productos,problema_abastecimiento,procedencia')
+              .eq('id', p.visita_id)
+              .single()
+          : Promise.resolve({ data: null }),
+        p.idcliente_sugerido
+          ? supabase.from('clientes')
+              .select('idcliente,nombre,departamento,zona,responsable,canal_cluster')
+              .eq('idcliente', p.idcliente_sugerido)
+              .single()
+          : Promise.resolve({ data: null }),
+      ])
 
-    const p = rawP as ProspectoRow
+      return {
+        ...p,
+        estado: p.estado as EstadoProspecto,
+        visita: (visRes.data as ProspectoDetalle['visita']) ?? null,
+        cliente_sugerido: (cliRes.data as ProspectoDetalle['cliente_sugerido']) ?? null,
+      }
+    },
+  })
 
-    const [visRes, cliRes] = await Promise.all([
-      p.visita_id
-        ? supabase.from('visitas')
-            .select('marca_temporal,localizacion,especie,tipo_cliente,animales,granjas,potencial_consumo_tn,marcas_consume,lineas_productos,problema_abastecimiento,procedencia')
-            .eq('id', p.visita_id)
-            .single()
-        : Promise.resolve({ data: null }),
-      p.idcliente_sugerido
-        ? supabase.from('clientes')
-            .select('idcliente,nombre,departamento,zona,responsable,canal_cluster')
-            .eq('idcliente', p.idcliente_sugerido)
-            .single()
-        : Promise.resolve({ data: null }),
-    ])
-
-    setProspecto({
-      ...p,
-      estado: p.estado as EstadoProspecto,
-      visita: (visRes.data as ProspectoDetalle['visita']) ?? null,
-      cliente_sugerido: (cliRes.data as ProspectoDetalle['cliente_sugerido']) ?? null,
-    })
-    setLoading(false)
-  }, [id])
-
-  useEffect(() => { cargar() }, [cargar])
-
-  return { prospecto, loading, error, recargar: cargar }
+  return {
+    prospecto: q.data ?? null,
+    loading: q.isLoading,
+    error: q.error ? q.error.message : null,
+    recargar: () => q.refetch(),
+  }
 }
 
-// ── Acciones ────────────────────────────────────────────────────────────────
+// ── Acciones (auto-invalidan cache de prospectos al terminar) ────────────────
+
+function invalidarProspectos() {
+  queryClient.invalidateQueries({ queryKey: ['prospectos'] })
+}
 
 export async function aprobarMatch(
   prospectoId: string,
   idcliente: string,
   confianza: number,
-  usuarioId: string
+  usuarioId: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('prospectos')
@@ -235,6 +237,7 @@ export async function aprobarMatch(
       estado:              'seguimiento',
     } as never)
     .eq('id', prospectoId)
+  if (!error) invalidarProspectos()
   return { error: error?.message ?? null }
 }
 
@@ -249,16 +252,18 @@ export async function rechazarMatch(prospectoId: string): Promise<{ error: strin
       match_aprobado_at:  null,
     } as never)
     .eq('id', prospectoId)
+  if (!error) invalidarProspectos()
   return { error: error?.message ?? null }
 }
 
 export async function cambiarEstado(
   prospectoId: string,
-  estado: EstadoProspecto
+  estado: EstadoProspecto,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('prospectos')
     .update({ estado: estado as string } as never)
     .eq('id', prospectoId)
+  if (!error) invalidarProspectos()
   return { error: error?.message ?? null }
 }

@@ -129,14 +129,44 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   )
 
-  // Leer CSV del body
+  // Leer CSV del body con límite de tamaño (anti-DoS: máx 5 MB)
+  const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024
+  const contentLength = Number(req.headers.get('content-length') ?? 0)
+  if (contentLength > MAX_PAYLOAD_BYTES) {
+    return new Response(
+      JSON.stringify({ error: `Payload muy grande (>${MAX_PAYLOAD_BYTES} bytes)` }),
+      { status: 413, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
   const text = await req.text()
+  if (text.length > MAX_PAYLOAD_BYTES) {
+    return new Response(
+      JSON.stringify({ error: `Payload muy grande (>${MAX_PAYLOAD_BYTES} bytes)` }),
+      { status: 413, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
   if (lines.length < 2) {
-    return new Response(JSON.stringify({ error: 'CSV vacío' }), { status: 400 })
+    return new Response(
+      JSON.stringify({ error: 'CSV vacío o sin filas de datos' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    )
   }
 
   const headers = parseCSVLine(lines[0])
+
+  // Validar columnas obligatorias mínimas
+  const REQUERIDAS = ['Marca temporal', 'SELECCIONE LA FUERZA DE VENTAS']
+  const faltantes = REQUERIDAS.filter(c => !headers.includes(c))
+  if (faltantes.length) {
+    return new Response(
+      JSON.stringify({ error: `CSV no contiene columnas requeridas: ${faltantes.join(', ')}` }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
   const rows    = lines.slice(1).map(parseCSVLine)
   const visitas = normalizarVisitas(headers, rows)
 

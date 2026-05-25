@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
 export interface VendedorResumen {
@@ -28,77 +28,62 @@ export interface VendedorLineaVenta {
   total_kg: number
 }
 
-// ── Hook: lista de todos los vendedores con métricas ────────────────────────
+// ── useVendedores — métricas agregadas por fuerza_de_venta ───────────────────
+
 export function useVendedores(mes?: string, anio?: number) {
-  const [vendedores, setVendedores] = useState<VendedorResumen[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-
-      // Facturas agrupadas por fuerza_de_venta
-      let q = supabase
+  const q = useQuery({
+    queryKey: ['vendedores', 'lista', { mes: mes ?? null, anio: anio ?? null }],
+    queryFn: async (): Promise<VendedorResumen[]> => {
+      // Facturas filtradas
+      let req = supabase
         .from('facturas')
         .select('fuerza_de_venta,valortotal,pesokgrtot,idcliente,semana,mes,anio')
         .neq('tipodocume', 'Notas de Crédito')
         .gt('valortotal', 0)
 
-      if (mes)  q = q.eq('mes', mes.toUpperCase())
-      if (anio) q = q.eq('anio', anio)
+      if (mes)  req = req.eq('mes', mes.toUpperCase())
+      if (anio) req = req.eq('anio', anio)
 
-      const { data: rawFacturas, error: fErr } = await q
-      if (fErr) { setError(fErr.message); setLoading(false); return }
+      const { data: rawFacturas, error } = await req
+      if (error) throw new Error(error.message)
       const facturas = (rawFacturas ?? []) as Array<{
         fuerza_de_venta: string | null; valortotal: number | null; pesokgrtot: number | null
         idcliente: string | null; semana: string | null; mes: string | null; anio: number | null
       }>
 
-      // Visitas agrupadas por fuerza_de_venta
-      const { data: rawVisitas } = await supabase
-        .from('visitas')
-        .select('fuerza_de_venta,marca_temporal')
-      const visitas = (rawVisitas ?? []) as Array<{ fuerza_de_venta: string | null; marca_temporal: string }>
+      const [{ data: rawVisitas }, { data: rawMetas }, { data: rawClientes }] = await Promise.all([
+        supabase.from('visitas').select('fuerza_de_venta,marca_temporal'),
+        supabase.from('metas').select('cod,meta'),
+        supabase.from('clientes').select('responsable,cod'),
+      ])
 
-      // Metas agrupadas por fuerza_de_venta
-      const { data: rawMetas } = await supabase
-        .from('metas')
-        .select('cod,meta')
-      const metas = (rawMetas ?? []) as Array<{ cod: string; meta: number | null }>
-
-      // Clientes con su cod (fuerza_de_venta)
-      const { data: rawClientes } = await supabase
-        .from('clientes')
-        .select('responsable,cod')
+      const visitas  = (rawVisitas  ?? []) as Array<{ fuerza_de_venta: string | null; marca_temporal: string }>
+      const metas    = (rawMetas    ?? []) as Array<{ cod: string; meta: number | null }>
       const clientes = (rawClientes ?? []) as Array<{ responsable: string | null; cod: string | null }>
+      void clientes  // referenciado solo para mantener forma de la query (no usado en agregación)
 
-      // Construir mapa de meta total por fuerza_de_venta
+      // Mapa de meta total por fuerza_de_venta (vía prefijo del cod)
       const metaPorFDV = new Map<string, number>()
-      if (metas && clientes) {
-        // Agrupar metas por fuerza_de_venta usando el cod de clientes como puente
-        for (const meta of metas) {
-          // El COD tiene formato "FUERZA_DE_VENTA-DepartamentoZona"
-          const fdv = meta.cod.split('-')[0]
-          metaPorFDV.set(fdv, (metaPorFDV.get(fdv) ?? 0) + (meta.meta ?? 0))
-        }
+      for (const m of metas) {
+        const fdv = m.cod.split('-')[0]
+        metaPorFDV.set(fdv, (metaPorFDV.get(fdv) ?? 0) + (m.meta ?? 0))
       }
 
-      // Mapa de visitas por fuerza_de_venta
+      // Visitas por fuerza_de_venta
       const visitasPorFDV = new Map<string, number>()
-      for (const v of (visitas ?? [])) {
+      for (const v of visitas) {
         if (!v.fuerza_de_venta) continue
         visitasPorFDV.set(v.fuerza_de_venta, (visitasPorFDV.get(v.fuerza_de_venta) ?? 0) + 1)
       }
 
-      // Agregar facturas por fuerza_de_venta
+      // Agregar facturas
       type Acum = {
         ventas: number; kg: number; clientesSet: Set<string>
         facturas: number; semanas: Map<string, number>
       }
       const agg = new Map<string, Acum>()
 
-      for (const f of (facturas ?? [])) {
+      for (const f of facturas) {
         const fdv = f.fuerza_de_venta ?? 'Sin asignar'
         if (!agg.has(fdv)) {
           agg.set(fdv, { ventas: 0, kg: 0, clientesSet: new Set(), facturas: 0, semanas: new Map() })
@@ -131,46 +116,42 @@ export function useVendedores(mes?: string, anio?: number) {
       }
 
       result.sort((a, b) => b.total_ventas - a.total_ventas)
-      setVendedores(result)
-      setLoading(false)
-    }
-    load()
-  }, [mes, anio])
+      return result
+    },
+  })
 
-  return { vendedores, loading, error }
+  return {
+    vendedores: q.data ?? [],
+    loading: q.isLoading,
+    error: q.error ? q.error.message : null,
+  }
 }
 
-// ── Hook: detalle de un vendedor ─────────────────────────────────────────────
+// ── useVendedorDetalle — top clientes y líneas de un vendedor ────────────────
+
 export function useVendedorDetalle(fuerza: string, mes?: string, anio?: number) {
-  const [topClientes,  setTopClientes]  = useState<VendedorTopCliente[]>([])
-  const [lineas,       setLineas]       = useState<VendedorLineaVenta[]>([])
-  const [loading,      setLoading]      = useState(true)
-
-  useEffect(() => {
-    if (!fuerza) return
-    async function load() {
-      setLoading(true)
-
-      let q = supabase
+  const q = useQuery({
+    queryKey: ['vendedores', 'detalle', fuerza, { mes: mes ?? null, anio: anio ?? null }],
+    enabled: !!fuerza,
+    queryFn: async () => {
+      let req = supabase
         .from('facturas')
         .select('idcliente,nombre,valortotal,pesokgrtot,lineas,fecha')
         .eq('fuerza_de_venta', fuerza)
         .neq('tipodocume', 'Notas de Crédito')
         .gt('valortotal', 0)
 
-      if (mes)  q = q.eq('mes', mes.toUpperCase())
-      if (anio) q = q.eq('anio', anio)
+      if (mes)  req = req.eq('mes', mes.toUpperCase())
+      if (anio) req = req.eq('anio', anio)
 
-      const { data: rawF } = await q
+      const { data: rawF } = await req
       const facturas = (rawF ?? []) as Array<{
         idcliente: string | null; nombre: string | null; valortotal: number | null
         pesokgrtot: number | null; lineas: string | null; fecha: string
       }>
 
-      // Top clientes
       type CAcum = { nombre: string; ventas: number; kg: number; count: number; ultima: string }
       const cMap = new Map<string, CAcum>()
-      // Líneas de producto
       type LAcum = { ventas: number; kg: number }
       const lMap = new Map<string, LAcum>()
 
@@ -191,7 +172,7 @@ export function useVendedorDetalle(fuerza: string, mes?: string, anio?: number) 
         }
       }
 
-      const top: VendedorTopCliente[] = [...cMap.entries()]
+      const topClientes: VendedorTopCliente[] = [...cMap.entries()]
         .map(([id, c]) => ({
           idcliente: id, nombre: c.nombre,
           total_ventas: Math.round(c.ventas), total_kg: Math.round(c.kg),
@@ -200,16 +181,17 @@ export function useVendedorDetalle(fuerza: string, mes?: string, anio?: number) 
         .sort((a, b) => b.total_ventas - a.total_ventas)
         .slice(0, 10)
 
-      const lin: VendedorLineaVenta[] = [...lMap.entries()]
+      const lineas: VendedorLineaVenta[] = [...lMap.entries()]
         .map(([l, v]) => ({ lineas: l, total_ventas: Math.round(v.ventas), total_kg: Math.round(v.kg) }))
         .sort((a, b) => b.total_ventas - a.total_ventas)
 
-      setTopClientes(top)
-      setLineas(lin)
-      setLoading(false)
-    }
-    load()
-  }, [fuerza, mes, anio])
+      return { topClientes, lineas }
+    },
+  })
 
-  return { topClientes, lineas, loading }
+  return {
+    topClientes: q.data?.topClientes ?? [],
+    lineas: q.data?.lineas ?? [],
+    loading: q.isLoading,
+  }
 }

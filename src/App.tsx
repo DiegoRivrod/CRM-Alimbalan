@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/lib/auth'
+import { queryClient } from '@/lib/queryClient'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import LoginPage from '@/pages/auth/LoginPage'
@@ -15,52 +18,62 @@ import TareasPage from '@/pages/tareas/TareasPage'
 import CalendarioPage from '@/pages/calendario/CalendarioPage'
 import VisitasPage from '@/pages/VisitasPage'
 import KpisPage from '@/pages/kpis/KpisPage'
+import AbalPlusDashboard from '@/pages/abal-plus/AbalPlusDashboard'
 import ImportarPage from '@/pages/importar/ImportarPage'
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard"  element={<DashboardPage />} />
-            <Route path="/clientes"          element={<ClientesPage />} />
-            <Route path="/clientes/:id"      element={<ClienteDetallePage />} />
-            <Route path="/prospectos"     element={<ProspectosPage />} />
-            <Route path="/prospectos/:id" element={<ProspectoDetallePage />} />
-            <Route path="/pipeline"     element={<KanbanPage />} />
-            <Route path="/tareas"      element={<TareasPage />} />
-            <Route path="/calendario" element={<CalendarioPage />} />
-            <Route path="/visitas"    element={<VisitasPage />} />
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard"         element={<DashboardPage />} />
+              <Route path="/clientes"          element={<ClientesPage />} />
+              <Route path="/clientes/:id"      element={<ClienteDetallePage />} />
+              <Route path="/prospectos"        element={<ProspectosPage />} />
+              <Route path="/prospectos/:id"    element={<ProspectoDetallePage />} />
+              <Route path="/pipeline"          element={<KanbanPage />} />
+              <Route path="/tareas"            element={<TareasPage />} />
+              <Route path="/calendario"        element={<CalendarioPage />} />
+              <Route path="/visitas"           element={<VisitasPage />} />
 
-            <Route path="/vendedores" element={
-              <ProtectedRoute roles={['gerente', 'supervisor']}>
-                <VendedoresPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/vendedores/:id" element={
-              <ProtectedRoute roles={['gerente', 'supervisor']}>
-                <VendedorDetallePage />
-              </ProtectedRoute>
-            } />
-            <Route path="/kpis" element={
-              <ProtectedRoute roles={['gerente', 'supervisor']}>
-                <KpisPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/importar" element={
-              <ProtectedRoute roles={['gerente', 'supervisor']}>
-                <ImportarPage />
-              </ProtectedRoute>
-            } />
-          </Route>
+              <Route path="/vendedores" element={
+                <ProtectedRoute roles={['gerente', 'supervisor']}>
+                  <VendedoresPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendedores/:id" element={
+                <ProtectedRoute roles={['gerente', 'supervisor']}>
+                  <VendedorDetallePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/kpis" element={
+                <ProtectedRoute roles={['gerente', 'supervisor']}>
+                  <KpisPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/abal-plus" element={
+                <ProtectedRoute roles={['gerente', 'supervisor']}>
+                  <AbalPlusDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/importar" element={
+                <ProtectedRoute roles={['gerente', 'supervisor']}>
+                  <ImportarPage />
+                </ProtectedRoute>
+              } />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }

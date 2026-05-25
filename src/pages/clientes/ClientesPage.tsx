@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, ChevronRight, TrendingUp, TrendingDown, Minus, Download } from 'lucide-react'
 import { useClientes } from '@/hooks/useClientes'
+import { useTiersClientes, TIER_CONFIG } from '@/hooks/useAbalPlus'
 import { exportarClientes } from '@/lib/exportar'
 
 const formatSoles = (n: number | null) =>
@@ -40,6 +41,7 @@ function InactividadBadge({ dias }: { dias: number | null }) {
 
 export default function ClientesPage() {
   const { clientes, loading, error } = useClientes()
+  const { tiers } = useTiersClientes()
   const navigate = useNavigate()
 
   const [search,       setSearch]       = useState('')
@@ -173,6 +175,7 @@ export default function ClientesPage() {
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">Valor</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">KG</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Actividad</th>
+                <th className="text-center px-4 py-3 font-medium text-muted-foreground">ABAL+</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -180,7 +183,7 @@ export default function ClientesPage() {
               {loading
                 ? Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i}>
-                      {Array.from({ length: 8 }).map((_, j) => (
+                      {Array.from({ length: 9 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
                           <div className="h-4 bg-muted animate-pulse rounded w-24" />
                         </td>
@@ -210,6 +213,18 @@ export default function ClientesPage() {
                         <td className="px-4 py-3 text-right font-medium">{formatSoles(c.ultimo_valor)}</td>
                         <td className="px-4 py-3 text-right text-muted-foreground">{formatKg(c.ultimo_kg)}</td>
                         <td className="px-4 py-3"><InactividadBadge dias={dias} /></td>
+                        <td className="px-4 py-3 text-center">
+                          {(() => {
+                            const t = tiers.get(c.idcliente)
+                            if (!t) return <span className="text-xs text-muted-foreground">—</span>
+                            const cfg = TIER_CONFIG[t.tier]
+                            return (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.bg}`}>
+                                {cfg.emoji} {cfg.label}
+                              </span>
+                            )
+                          })()}
+                        </td>
                         <td className="px-4 py-3">
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </td>

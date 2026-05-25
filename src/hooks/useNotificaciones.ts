@@ -1,29 +1,29 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 import type { Notificacion } from '@/types/supabase'
 
 export function useNotificaciones() {
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
-  const [loading, setLoading] = useState(true)
+  const q = useQuery({
+    queryKey: ['notificaciones', 'usuario-actual'],
+    queryFn: async (): Promise<Notificacion[]> => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return []
 
-  const cargar = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+      const { data, error } = await supabase
+        .from('notificaciones')
+        .select('*')
+        .eq('usuario_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
 
-    const { data } = await supabase
-      .from('notificaciones')
-      .select('*')
-      .eq('usuario_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50)
+      if (error) throw new Error(error.message)
+      return (data ?? []) as Notificacion[]
+    },
+  })
 
-    setNotificaciones((data ?? []) as Notificacion[])
-    setLoading(false)
-  }, [])
-
-  useEffect(() => { cargar() }, [cargar])
-
-  // Suscripción Realtime para nuevas notificaciones
+  // Suscripción Realtime: inyectamos directo al cache para no tener que refetch
   useEffect(() => {
     let cancelado = false
 
@@ -43,8 +43,11 @@ export function useNotificaciones() {
           },
           (payload) => {
             const nueva = payload.new as Notificacion
-            setNotificaciones(prev => [nueva, ...prev].slice(0, 50))
-          }
+            queryClient.setQueryData<Notificacion[]>(
+              ['notificaciones', 'usuario-actual'],
+              prev => [nueva, ...(prev ?? [])].slice(0, 50),
+            )
+          },
         )
         .subscribe()
 
@@ -60,38 +63,46 @@ export function useNotificaciones() {
     }
   }, [])
 
+  const notificaciones = q.data ?? []
   const conteoNoLeidas = notificaciones.filter(n => !n.leida).length
 
-  const marcarLeida = useCallback(async (id: string) => {
+  // ── Acciones con optimistic update ─────────────────────────────────────────
+
+  async function marcarLeida(id: string) {
+    // Optimistic: actualizar cache YA antes de esperar al server
+    queryClient.setQueryData<Notificacion[]>(
+      ['notificaciones', 'usuario-actual'],
+      prev => (prev ?? []).map(n => n.id === id ? { ...n, leida: true } : n),
+    )
+
     await supabase
       .from('notificaciones')
       .update({ leida: true } as never)
       .eq('id', id)
+  }
 
-    setNotificaciones(prev =>
-      prev.map(n => n.id === id ? { ...n, leida: true } : n)
-    )
-  }, [])
-
-  const marcarTodasLeidas = useCallback(async () => {
+  async function marcarTodasLeidas() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    queryClient.setQueryData<Notificacion[]>(
+      ['notificaciones', 'usuario-actual'],
+      prev => (prev ?? []).map(n => ({ ...n, leida: true })),
+    )
 
     await supabase
       .from('notificaciones')
       .update({ leida: true } as never)
       .eq('usuario_id', user.id)
       .eq('leida', false)
-
-    setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })))
-  }, [])
+  }
 
   return {
     notificaciones,
-    loading,
+    loading: q.isLoading,
     conteoNoLeidas,
     marcarLeida,
     marcarTodasLeidas,
-    recargar: cargar,
+    recargar: () => q.refetch(),
   }
 }

@@ -335,13 +335,48 @@ export default function ImportarPage() {
 
     try {
       const visitas = await parseVisitasCSV(visitaFile)
-      setStepVisitas({ status: 'running', message: `Insertando ${visitas.length} visitas...` })
+      setStepVisitas({ status: 'running', message: `Resolviendo clientes (${visitas.length} visitas)...` })
 
-      const { count, error } = await upsertBatch('visitas', visitas, 'marca_temporal,fuerza_de_venta,numero_visita')
+      // El Google Form devuelve el NOMBRE del cliente en "SELECCIONE EL CLIENTE", no el IDCLIENTE.
+      // Resolvemos el idcliente real haciendo match por nombre normalizado. Si no hay match,
+      // reclasificamos la visita como cliente nuevo para que se cree un prospecto.
+      const { data: clientesRows } = await supabase
+        .from('clientes')
+        .select('idcliente, nombre')
+      const normalizar = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim()
+      const mapaNombreAId = new Map<string, string>()
+      for (const c of (clientesRows ?? []) as Array<{ idcliente: string; nombre: string }>) {
+        if (c.nombre) mapaNombreAId.set(normalizar(c.nombre), c.idcliente)
+      }
+
+      let resueltas = 0, reclasificadas = 0
+      const visitasResueltas = visitas.map(v => {
+        // Si ya tiene idcliente con formato válido (1-6 dígitos) lo dejamos
+        if (!v.es_cliente_nuevo && v.idcliente && /^\d{1,6}$/.test(v.idcliente)) {
+          resueltas++
+          return v
+        }
+        // Si es cliente existente pero el "idcliente" es en realidad un nombre, intentar resolver
+        if (!v.es_cliente_nuevo && v.idcliente) {
+          const idReal = mapaNombreAId.get(normalizar(v.idcliente))
+          if (idReal) {
+            resueltas++
+            return { ...v, idcliente: idReal.padStart(6, '0') }
+          }
+          // No matchea → reclasificar como cliente nuevo
+          reclasificadas++
+          return { ...v, es_cliente_nuevo: true, nombre_cliente_nuevo: v.idcliente, idcliente: null }
+        }
+        return v
+      })
+
+      setStepVisitas({ status: 'running', message: `Insertando ${visitasResueltas.length} visitas (${resueltas} resueltas · ${reclasificadas} reclasificadas)...` })
+
+      const { count, error } = await upsertBatch('visitas', visitasResueltas, 'marca_temporal,fuerza_de_venta,numero_visita')
       if (error) throw new Error(error)
 
       // Crear prospectos para visitas de clientes nuevos
-      const nuevos = visitas.filter(v => v.es_cliente_nuevo && v.nombre_cliente_nuevo)
+      const nuevos = visitasResueltas.filter(v => v.es_cliente_nuevo && v.nombre_cliente_nuevo)
       if (nuevos.length) {
         const prospectos = nuevos.map(v => ({
           nombre:          v.nombre_cliente_nuevo!,

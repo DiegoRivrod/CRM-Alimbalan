@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, TrendingUp, UserSearch,
-  Activity, Upload, BarChart3, LogOut, Building2, Kanban, CheckSquare, Calendar
+  Activity, Upload, BarChart3, LogOut, Building2, Kanban, CheckSquare, Calendar, Trophy
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/calendario', label: 'Calendario',    icon: Calendar,        roles: ['gerente', 'supervisor', 'vendedor'] },
   { to: '/visitas',    label: 'Actividad',     icon: Activity,        roles: ['gerente', 'supervisor', 'vendedor'] },
   { to: '/kpis',       label: 'KPIs',          icon: BarChart3,       roles: ['gerente', 'supervisor'] },
+  { to: '/abal-plus',  label: 'ABAL+',         icon: Trophy,          roles: ['gerente', 'supervisor'] },
   { to: '/importar',   label: 'Importar datos',icon: Upload,          roles: ['gerente', 'supervisor'] },
 ] as const
 

@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABAL+ — Programa de Fidelización de Clientes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ─────────────────────────────────────────────────────────── */
+    :root {
+      --negro:    #0f172a;
+      --negro-med:#1e293b;
+      --dorado:   #f59e0b;
+      --dorado-claro: #fef3c7;
+      --dorado-borde: #fcd34d;
+      --plata:    #94a3b8;
+      --bronce-c: #d97706;
+      --plata-c:  #64748b;
+      --oro-c:    #b45309;
+      --verde:    #16a34a;
+      --gris-bg:  #f8fafc;
+      --borde:    #e2e8f0;
+      --texto:    #1e293b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--texto);
+      background: #f1f5f9;
+    }
+
+    /* ── Contenedor ────────────────────────────────────────────────────────── */
+    .doc {
+      max-width: 940px;
+      margin: 32px auto;
+      background: #fff;
+      box-shadow: 0 4px 40px rgba(0,0,0,.10);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    /* ══ PORTADA ════════════════════════════════════════════════════════════ */
+    .portada {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #292f3f 100%);
+      color: #fff;
+      padding: 72px 64px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .portada::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
+      top: -150px; right: -150px;
+    }
+    .portada::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,.08) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+    }
+
+    .portada-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,158,11,.15);
+      border: 1px solid rgba(245,158,11,.35);
+      color: var(--dorado);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 100px;
+      margin-bottom: 36px;
+    }
+
+    .portada-empresa {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 20px;
+    }
+
+    .portada-logo {
+      display: inline-block;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 4px;
+      position: relative; z-index: 1;
+    }
+    .portada-logo span { color: var(--dorado); }
+
+    .portada-sub {
+      font-size: 19px;
+      font-weight: 400;
+      color: rgba(255,255,255,.75);
+      margin-bottom: 12px;
+    }
+
+    .portada-desc {
+      font-size: 13.5px;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 48px;
+      max-width: 520px;
+    }
+
+    .portada-meta {
+      display: flex;
+      gap: 32px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 40px;
+      position: relative; z-index: 1;
+    }
+    .portada-meta strong { color: rgba(255,255,255,.85); display: block; }
+
+    /* KPI cards portada */
+    .portada-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .pk {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(245,158,11,.2);
+      border-radius: 10px;
+      padding: 16px 14px;
+      text-align: center;
+    }
+    .pk-num {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--dorado);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+    .pk-label { font-size: 11px; color: rgba(255,255,255,.6); font-weight: 500; }
+
+    /* Tiers preview portada */
+    .portada-tiers {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      position: relative; z-index: 1;
+    }
+    .pt {
+      flex: 1;
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pt-bronce { background: linear-gradient(135deg,#78350f,#92400e); border: 1px solid #b45309; color: #fde68a; }
+    .pt-plata  { background: linear-gradient(135deg,#334155,#475569); border: 1px solid #64748b; color: #e2e8f0; }
+    .pt-oro    { background: linear-gradient(135deg,#92400e,#b45309); border: 1px solid #d97706; color: #fef3c7; }
+    .pt-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    /* ══ CUERPO ══════════════════════════════════════════════════════════════ */
+    .body { padding: 56px 64px; }
+
+    /* ── Índice ──────────────────────────────────────────────────────────── */
+    .indice {
+      background: var(--gris-bg);
+      border: 1px solid var(--borde);
+      border-left: 4px solid var(--dorado);
+      border-radius: 0 10px 10px 0;
+      padding: 24px 28px;
+      margin-bottom: 52px;
+    }
+    .indice h3 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--bronce-c);
+      margin-bottom: 14px;
+    }
+    .indice ol { columns: 2; column-gap: 32px; list-style: none; counter-reset: idx; }
+    .indice li {
+      counter-increment: idx;
+      padding: 5px 0;
+      font-size: 13.5px;
+      border-bottom: 1px dashed var(--borde);
+    }
+    .indice li::before {
+      content: counter(idx) ". ";
+      color: var(--dorado);
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .indice a { color: #1e293b; text-decoration: none; }
+    .indice a:hover { color: var(--bronce-c); }
+
+    /* ── Sección ─────────────────────────────────────────────────────────── */
+    .seccion { margin-bottom: 52px; }
+    .sec-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--dorado-claro);
+    }
+    .sec-num {
+      background: var(--negro);
+      color: var(--dorado);
+      font-size: 12px;
+      font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sec-header h2 { font-size: 21px; font-weight: 700; color: var(--negro); }
+
+    /* ── Texto general ───────────────────────────────────────────────────── */
+    .resumen p { margin-bottom: 14px; color: #374151; }
+    .resumen p:last-child { margin-bottom: 0; }
+
+    /* ── Highlight box ───────────────────────────────────────────────────── */
+    .highlight-box {
+      background: var(--dorado-claro);
+      border: 1px solid var(--dorado-borde);
+      border-left: 4px solid var(--dorado);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 14.5px;
+      color: #78350f;
+      font-weight: 500;
+    }
+
+    /* ── Problemática ─────────────────────────────────────────────────────── */
+    .problema-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .problema-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 8px; padding: 14px 16px;
+    }
+    .problema-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #dc2626; flex-shrink: 0; margin-top: 6px;
+    }
+    .problema-item p { font-size: 13.5px; color: #7f1d1d; line-height: 1.5; }
+
+    /* ── Objetivos ────────────────────────────────────────────────────────── */
+    .objetivos-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .obj-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 12px 14px; background: var(--gris-bg);
+      border: 1px solid var(--borde); border-radius: 8px; font-size: 13.5px;
+    }
+    .obj-check {
+      width: 20px; height: 20px; background: var(--verde);
+      border-radius: 50%; flex-shrink: 0; display: flex;
+      align-items: center; justify-content: center; margin-top: 1px;
+    }
+    .obj-check::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+
+    /* ── Tablas genéricas ─────────────────────────────────────────────────── */
+    .tbl-wrap { border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+    .tbl-wrap + .tbl-wrap { margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      background: var(--negro); color: #fff; font-weight: 600;
+      padding: 10px 14px; text-align: left;
+    }
+    thead th:first-child { border-radius: 0; }
+    tbody tr:nth-child(even) { background: var(--gris-bg); }
+    tbody td { padding: 9px 14px; border-bottom: 1px solid var(--borde); color: #374151; }
+    tbody tr:last-child td { border-bottom: none; }
+    td.total-row { font-weight: 700; color: var(--negro); background: var(--dorado-claro) !important; }
+    td.center { text-align: center; }
+
+    /* ── Sistema de puntos ───────────────────────────────────────────────── */
+    .puntos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 20px; }
+    .punto-card {
+      border: 1px solid var(--borde); border-radius: 10px;
+      padding: 18px 20px; background: var(--gris-bg);
+      border-top: 3px solid var(--dorado);
+    }
+    .punto-icono { font-size: 26px; margin-bottom: 8px; display: block; }
+    .punto-titulo { font-size: 14px; font-weight: 700; color: var(--negro); margin-bottom: 4px; }
+    .punto-regla { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+    .punto-valor {
+      display: inline-block;
+      background: var(--negro);
+      color: var(--dorado);
+      font-size: 12px; font-weight: 700;
+      padding: 3px 12px; border-radius: 100px;
+    }
+
+    .bonus-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .bonus-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #fff7ed; border: 1px solid #fed7aa;
+      border-radius: 8px; padding: 12px 14px;
+    }
+    .bonus-star { font-size: 16px; flex-shrink: 0; }
+    .bonus-item p { font-size: 13px; color: #9a3412; }
+    .bonus-item strong { display: block; color: #7c2d12; }
+
+    /* ── Tiers ────────────────────────────────────────────────────────────── */
+    .tiers-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
+    }
+    .tier-card {
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .tier-header {
+      padding: 22px 20px 16px;
+      text-align: center;
+      position: relative;
+    }
+    .tier-card.bronce .tier-header { background: linear-gradient(135deg,#78350f,#a16207); }
+    .tier-card.plata  .tier-header { background: linear-gradient(135deg,#334155,#64748b); }
+    .tier-card.oro    .tier-header { background: linear-gradient(135deg,#92400e,#d97706); }
+
+    .tier-icon { font-size: 36px; display: block; margin-bottom: 6px; }
+    .tier-nombre {
+      font-size: 18px; font-weight: 800; color: #fff; letter-spacing: .05em; text-transform: uppercase;
+    }
+    .tier-rango {
+      font-size: 11px; color: rgba(255,255,255,.7); margin-top: 4px; font-weight: 500;
+    }
+    .tier-body {
+      padding: 18px;
+      border: 1px solid var(--borde);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      background: #fff;
+    }
+    .tier-body ul { list-style: none; }
+    .tier-body li {
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--borde);
+      font-size: 13px;
+      color: #374151;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tier-body li:last-child { border-bottom: none; }
+    .tier-body li .si  { color: var(--verde); font-weight: 700; font-size: 13px; }
+    .tier-body li .no  { color: #94a3b8; font-size: 13px; }
+
+    /* Tabla comparativa de beneficios */
+    .beneficio-si  { color: var(--verde); font-weight: 700; text-align: center; }
+    .beneficio-no  { color: #cbd5e1; text-align: center; font-size: 18px; }
+    .beneficio-val { font-weight: 600; text-align: center; color: var(--negro); }
+    th.col-bronce { color: #fde68a !important; }
+    th.col-plata  { color: #e2e8f0 !important; }
+    th.col-oro    { color: #fcd34d !important; }
+
+    /* ── Mecánica ─────────────────────────────────────────────────────────── */
+    .mecanica-steps { display: flex; flex-direction: column; gap: 12px; }
+    .step-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 14px 18px; border: 1px solid var(--borde);
+      border-radius: 10px; background: var(--gris-bg);
+    }
+    .step-num {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--negro); color: var(--dorado);
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-content strong { display: block; font-size: 14px; color: var(--negro); margin-bottom: 2px; }
+    .step-content p { font-size: 13px; color: #6b7280; }
+
+    /* ── Ejemplos prácticos ──────────────────────────────────────────────── */
+    .ejemplos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .ejemplo-card {
+      border-radius: 10px; border: 1px solid var(--borde); overflow: hidden;
+    }
+    .ejemplo-header { padding: 14px 16px; }
+    .ejemplo-card.ej-a .ejemplo-header { background: #78350f; }
+    .ejemplo-card.ej-b .ejemplo-header { background: #334155; }
+    .ejemplo-card.ej-c .ejemplo-header { background: #92400e; }
+    .ejemplo-header-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .08em; }
+    .ejemplo-header-title { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
+    .ejemplo-body { padding: 16px; }
+    .ejemplo-detalles { list-style: none; margin-bottom: 14px; }
+    .ejemplo-detalles li { font-size: 12.5px; color: #6b7280; padding: 3px 0; }
+    .ejemplo-detalles li::before { content: '▸ '; color: var(--dorado); }
+    .ejemplo-total {
+      background: var(--dorado-claro); border: 1px solid var(--dorado-borde);
+      border-radius: 6px; padding: 10px 14px; text-align: center;
+    }
+    .ejemplo-total-num { font-size: 22px; font-weight: 800; color: #92400e; }
+    .ejemplo-total-label { font-size: 11px; color: #b45309; font-weight: 600; }
+
+    /* ── Cronograma Gantt ─────────────────────────────────────────────────── */
+    .gantt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .gantt-table th {
+      background: var(--negro); color: #fff;
+      padding: 9px 14px; font-weight: 600; text-align: left;
+    }
+    .gantt-table th.mes { text-align: center; width: 65px; }
+    .gantt-table td { border: 1px solid var(--borde); padding: 8px 12px; color: #374151; vertical-align: middle; }
+    .gantt-table td.mes { text-align: center; padding: 4px; }
+    .gantt-cell { border-radius: 4px; height: 22px; display: block; }
+    .g1 { background: #3b82f6; opacity: .8; }
+    .g2 { background: #8b5cf6; opacity: .8; }
+    .g3 { background: var(--dorado); opacity: .8; }
+    .g4 { background: #10b981; opacity: .8; }
+    .gantt-legend {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .gl-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #374151; }
+    .gl-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── KPIs de éxito ───────────────────────────────────────────────────── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .kpi-card {
+      background: var(--gris-bg); border: 1px solid var(--borde);
+      border-radius: 10px; padding: 18px; text-align: center;
+    }
+    .kpi-icon { font-size: 24px; margin-bottom: 8px; }
+    .kpi-meta { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b7280; }
+    .kpi-val6  { font-size: 20px; font-weight: 800; color: var(--bronce-c); }
+    .kpi-val12 { font-size: 18px; font-weight: 700; color: var(--verde); }
+    .kpi-sep { font-size: 11px; color: #94a3b8; margin: 2px 0; }
+
+    /* ── Costos ───────────────────────────────────────────────────────────── */
+    .costo-placeholder {
+      background: #fffbeb; border: 1px dashed #fbbf24;
+      border-radius: 6px; padding: 8px 14px; font-size: 12px; color: #92400e;
+      margin-top: 12px; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ── Próximos pasos ──────────────────────────────────────────────────── */
+    .pasos-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .paso-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 16px; border: 1px solid var(--borde);
+      border-radius: 8px; background: var(--gris-bg);
+    }
+    .paso-num {
+      background: var(--dorado); color: var(--negro);
+      font-size: 12px; font-weight: 800;
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .paso-item p { font-size: 13.5px; color: #374151; }
+    .paso-item strong { color: #1e293b; display: block; margin-bottom: 2px; }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .footer {
+      background: var(--negro); color: rgba(255,255,255,.5);
+      text-align: center; font-size: 12px; padding: 24px 32px;
+    }
+    .footer strong { color: var(--dorado); }
+
+    /* ══ PRINT ══════════════════════════════════════════════════════════════ */
+    @media print {
+      body { background: #fff; font-size: 13px; }
+      .doc { margin: 0; box-shadow: none; border-radius: 0; }
+      .portada { padding: 48px; page-break-after: always; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .body { padding: 32px 48px; }
+      .seccion { page-break-inside: avoid; margin-bottom: 36px; }
+      .tiers-cards, .ejemplos-grid, .puntos-grid, .problema-grid, .pasos-list { page-break-inside: avoid; }
+      @page { margin: 18mm 16mm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       PORTADA
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="portada">
+    <div class="portada-badge">⭐ Propuesta Gerencial — Versión 1.0</div>
+    <div class="portada-empresa">ABAL S.A.C — Alimentos Balanceados del Peru</div>
+
+    <div class="portada-logo">ABAL<span>+</span></div>
+    <p class="portada-sub">Programa de Fidelización de Clientes</p>
+    <p class="portada-desc">
+      Un sistema de puntos y niveles diseñado para incentivar mayor volumen de compra,
+      diversificación de productos y frecuencia de pedidos en nuestra cartera de clientes.
+    </p>
+
+    <div class="portada-meta">
+      <div><strong>Versión</strong>Propuesta 1.0</div>
+      <div><strong>Fecha</strong>Mayo 2026</div>
+      <div><strong>Estado</strong>En evaluación</div>
+      <div><strong>Clasificación</strong>Uso interno</div>
+    </div>
+
+    <div class="portada-kpis">
+      <div class="pk">
+        <div class="pk-num">3</div>
+        <div class="pk-label">Niveles de membresía</div>
+      </div>
+      <div class="pk">
+        <div class="pk-num">4</div>
+        <div class="pk-label">Formas de ganar puntos</div>
+      </div>
+      <div class="pk">
+        <div class="pk-num">+1,450</div>
+        <div class="pk-label">Clientes potenciales</div>
+      </div>
+      <div class="pk">
+        <div class="pk-num">8</div>
+        <div class="pk-label">Beneficios por tier</div>
+      </div>
+    </div>
+
+    <div class="portada-tiers">
+      <div class="pt pt-bronce">
+        <span class="pt-icon">🥉</span>
+        BRONCE
+        <div style="font-weight:400;font-size:10px;margin-top:3px;opacity:.8">Cliente base</div>
+      </div>
+      <div class="pt pt-plata">
+        <span class="pt-icon">🥈</span>
+        PLATA
+        <div style="font-weight:400;font-size:10px;margin-top:3px;opacity:.8">Cliente fiel</div>
+      </div>
+      <div class="pt pt-oro">
+        <span class="pt-icon">🥇</span>
+        ORO
+        <div style="font-weight:400;font-size:10px;margin-top:3px;opacity:.8">Cliente premium</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CUERPO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="body">
+
+    <!-- Índice -->
+    <div class="indice">
+      <h3>⭐ Contenido del Documento</h3>
+      <ol>
+        <li><a href="#resumen">Resumen Ejecutivo</a></li>
+        <li><a href="#problematica">Problemática Comercial</a></li>
+        <li><a href="#objetivos">Objetivos del Programa</a></li>
+        <li><a href="#puntos">Sistema de Puntos — Cómo Ganar</a></li>
+        <li><a href="#tiers">Niveles del Programa (Tiers)</a></li>
+        <li><a href="#beneficios">Tabla Comparativa de Beneficios</a></li>
+        <li><a href="#mecanica">Mecánica de Operación</a></li>
+        <li><a href="#ejemplos">Ejemplos Prácticos</a></li>
+        <li><a href="#cronograma">Cronograma de Implementación</a></li>
+        <li><a href="#kpis">KPIs de Éxito</a></li>
+        <li><a href="#costos">Inversión y Costos</a></li>
+        <li><a href="#pasos">Próximos Pasos</a></li>
+      </ol>
+    </div>
+
+    <!-- ── 1. RESUMEN EJECUTIVO ─────────────────────────────────────────── -->
+    <div class="seccion" id="resumen">
+      <div class="sec-header">
+        <div class="sec-num">1</div>
+        <h2>Resumen Ejecutivo</h2>
+      </div>
+      <div class="resumen">
+        <p>
+          ABAL S.A.C atiende a más de 1,450 clientes activos en múltiples zonas del país. El análisis de la cartera revela un patrón recurrente: la mayoría de clientes concentra sus compras en uno o dos SKUs habituales, realiza pedidos con baja frecuencia y no tiene ningún incentivo económico para crecer más allá de su volumen habitual. Esta conducta limita el potencial de ventas cruzadas y reduce la rentabilidad por cliente.
+        </p>
+        <p>
+          El programa <strong>ABAL+</strong> propone un sistema de fidelización basado en puntos y niveles (tiers) que premia cuatro comportamientos clave: <strong>comprar mayor volumen</strong>, <strong>diversificar líneas de producto</strong>, <strong>mantener frecuencia regular de pedidos</strong> y <strong>facturar montos crecientes</strong>. A medida que el cliente acumula puntos, escala de nivel (Bronce → Plata → Oro) y accede a beneficios tangibles como descuentos en pedidos, ampliación de crédito, asesoría técnica y acceso exclusivo a promociones.
+        </p>
+        <p>
+          El programa se implementa en 4 fases de 2 meses cada una, comenzando con un piloto de 50 clientes seleccionados para validar las reglas antes del lanzamiento general. En una primera etapa puede operarse manualmente con apoyo del equipo comercial, y en una segunda etapa integrarse al CRM existente para automatizar el cálculo de puntos y la notificación de cambios de nivel.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── 2. PROBLEMÁTICA ─────────────────────────────────────────────── -->
+    <div class="seccion" id="problematica">
+      <div class="sec-header">
+        <div class="sec-num">2</div>
+        <h2>Problemática Comercial</h2>
+      </div>
+      <div class="problema-grid">
+        <div class="problema-item">
+          <div class="problema-dot"></div>
+          <p>Los clientes compran <strong>1-2 SKUs por hábito</strong>, sin explorar otras líneas del portafolio disponible</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-dot"></div>
+          <p><strong>No hay incentivo económico</strong> para aumentar el volumen de compra por encima del mínimo habitual</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-dot"></div>
+          <p>Alta rotación de clientes pequeños que <strong>buscan precio en la competencia</strong> sin vínculo de lealtad</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-dot"></div>
+          <p><strong>La lealtad acumulada no tiene valor</strong> — un cliente de 5 años recibe el mismo trato que uno nuevo</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-dot"></div>
+          <p>El vendedor <strong>no cuenta con una herramienta diferenciadora</strong> para retener clientes frente a la competencia</p>
+        </div>
+        <div class="problema-item">
+          <div class="problema-dot"></div>
+          <p>Sin frecuencia de compra estable, <strong>la proyección de ventas es impredecible</strong> mes a mes</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. OBJETIVOS ────────────────────────────────────────────────── -->
+    <div class="seccion" id="objetivos">
+      <div class="sec-header">
+        <div class="sec-num">3</div>
+        <h2>Objetivos del Programa</h2>
+      </div>
+      <div class="highlight-box">
+        <strong>Objetivo General:</strong> Incrementar el valor de vida del cliente (CLV) mediante un sistema de recompensas escalonado que premia volumen de compra, diversificación de SKUs y frecuencia de pedidos — transformando la relación comercial de transaccional a estratégica.
+      </div>
+      <div class="objetivos-list">
+        <div class="obj-item">
+          <div class="obj-check"></div>
+          <span>Aumentar el ticket promedio mensual de clientes Bronce en al menos <strong>+20%</strong> en los primeros 6 meses</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check"></div>
+          <span>Incrementar en <strong>+30%</strong> el número de SKUs distintos comprados por cliente por mes</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check"></div>
+          <span>Reducir la tasa de abandono de clientes activos en un <strong>15%</strong> durante los primeros 6 meses</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check"></div>
+          <span>Migrar al menos el <strong>30%</strong> de clientes Bronce al nivel Plata en el primer año</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check"></div>
+          <span>Lograr que el <strong>90%</strong> de la cartera esté inscrita en el programa al final del año</span>
+        </div>
+        <div class="obj-item">
+          <div class="obj-check"></div>
+          <span>Dar al equipo comercial una <strong>herramienta diferenciadora</strong> frente a la competencia</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4. SISTEMA DE PUNTOS ────────────────────────────────────────── -->
+    <div class="seccion" id="puntos">
+      <div class="sec-header">
+        <div class="sec-num">4</div>
+        <h2>Sistema de Puntos — Cómo Ganar</h2>
+      </div>
+      <div class="puntos-grid">
+        <div class="punto-card">
+          <span class="punto-icono">📦</span>
+          <div class="punto-titulo">Volumen de Compra</div>
+          <div class="punto-regla">Por cada saco comprado en una factura aprobada</div>
+          <span class="punto-valor">1 punto por saco</span>
+        </div>
+        <div class="punto-card">
+          <span class="punto-icono">💰</span>
+          <div class="punto-titulo">Valor Facturado</div>
+          <div class="punto-regla">Por cada S/. 100 facturados en el mes (acumulado)</div>
+          <span class="punto-valor">2 puntos por S/. 100</span>
+        </div>
+        <div class="punto-card">
+          <span class="punto-icono">🎯</span>
+          <div class="punto-titulo">Diversificación de SKUs</div>
+          <div class="punto-regla">Al comprar 3 o más líneas de producto distintas en el mes</div>
+          <span class="punto-valor">+150 puntos bonus</span>
+        </div>
+        <div class="punto-card">
+          <span class="punto-icono">🔄</span>
+          <div class="punto-titulo">Frecuencia de Compra</div>
+          <div class="punto-regla">Al realizar 3 o más pedidos distintos en el mismo mes</div>
+          <span class="punto-valor">+100 puntos bonus</span>
+        </div>
+      </div>
+
+      <p style="font-size:13.5px;font-weight:700;color:var(--negro);margin-bottom:12px;">⭐ Multiplicadores y Bonificaciones Especiales</p>
+      <div class="bonus-grid">
+        <div class="bonus-item">
+          <span class="bonus-star">⭐</span>
+          <p><strong>Línea nueva por primera vez</strong>Al comprar una línea de producto que el cliente nunca había adquirido: puntos de esa factura ×2</p>
+        </div>
+        <div class="bonus-item">
+          <span class="bonus-star">🏆</span>
+          <p><strong>Superar meta mensual asignada</strong>Si el cliente supera su meta de compra del mes: +200 puntos bonus adicionales</p>
+        </div>
+        <div class="bonus-item">
+          <span class="bonus-star">🎂</span>
+          <p><strong>Aniversario de cliente</strong>Bonus de +500 puntos en el mes de aniversario de relación comercial con ABAL</p>
+        </div>
+        <div class="bonus-item">
+          <span class="bonus-star">📣</span>
+          <p><strong>Referido que se convierte en cliente</strong>+300 puntos al cliente que refirió a un nuevo comprador que realiza su primera factura</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 5. TIERS ────────────────────────────────────────────────────── -->
+    <div class="seccion" id="tiers">
+      <div class="sec-header">
+        <div class="sec-num">5</div>
+        <h2>Niveles del Programa (Tiers)</h2>
+      </div>
+      <div style="font-size:13.5px;color:#6b7280;margin-bottom:20px;">
+        El nivel se calcula sobre los puntos acumulados en los <strong>últimos 12 meses móviles</strong> y se recalcula automáticamente al inicio de cada mes.
+      </div>
+      <div class="tiers-cards">
+        <div class="tier-card bronce">
+          <div class="tier-header">
+            <span class="tier-icon">🥉</span>
+            <div class="tier-nombre">Bronce</div>
+            <div class="tier-rango">0 — 2,999 puntos anuales</div>
+          </div>
+          <div class="tier-body">
+            <ul>
+              <li><span class="si">✓</span> Acceso al programa ABAL+</li>
+              <li><span class="no">—</span> Descuento en pedidos</li>
+              <li><span class="no">—</span> Crédito ampliado</li>
+              <li><span class="no">—</span> Acceso anticipado a lanzamientos</li>
+              <li><span class="no">—</span> Asesoría técnica personalizada</li>
+              <li><span class="si">✓</span> Comunicaciones del programa</li>
+              <li><span class="no">—</span> Sorteos trimestrales</li>
+              <li><span class="no">—</span> Gestor de cuenta dedicado</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tier-card plata">
+          <div class="tier-header">
+            <span class="tier-icon">🥈</span>
+            <div class="tier-nombre">Plata</div>
+            <div class="tier-rango">3,000 — 7,999 puntos anuales</div>
+          </div>
+          <div class="tier-body">
+            <ul>
+              <li><span class="si">✓</span> Acceso al programa ABAL+</li>
+              <li><span class="si">✓</span> Descuento 2% en pedidos</li>
+              <li><span class="si">✓</span> Crédito ampliado +5 días</li>
+              <li><span class="si">✓</span> Acceso anticipado a lanzamientos</li>
+              <li><span class="no">—</span> Asesoría técnica personalizada</li>
+              <li><span class="si">✓</span> Kit de regalo por aniversario</li>
+              <li><span class="si">✓</span> Sorteos trimestrales</li>
+              <li><span class="no">—</span> Gestor de cuenta dedicado</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tier-card oro">
+          <div class="tier-header">
+            <span class="tier-icon">🥇</span>
+            <div class="tier-nombre">Oro</div>
+            <div class="tier-rango">8,000+ puntos anuales</div>
+          </div>
+          <div class="tier-body">
+            <ul>
+              <li><span class="si">✓</span> Acceso al programa ABAL+</li>
+              <li><span class="si">✓</span> Descuento 4% en pedidos</li>
+              <li><span class="si">✓</span> Crédito ampliado +10 días</li>
+              <li><span class="si">✓</span> Acceso anticipado a lanzamientos</li>
+              <li><span class="si">✓</span> Asesoría técnica personalizada</li>
+              <li><span class="si">✓</span> Kit premium por aniversario</li>
+              <li><span class="si">✓</span> Doble chance en sorteos</li>
+              <li><span class="si">✓</span> Gestor de cuenta dedicado</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 6. TABLA COMPARATIVA ───────────────────────────────────────── -->
+    <div class="seccion" id="beneficios">
+      <div class="sec-header">
+        <div class="sec-num">6</div>
+        <h2>Tabla Comparativa de Beneficios</h2>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Beneficio</th>
+              <th class="col-bronce" style="text-align:center">🥉 Bronce</th>
+              <th class="col-plata"  style="text-align:center">🥈 Plata</th>
+              <th class="col-oro"    style="text-align:center">🥇 Oro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Descuento en pedidos</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-val">2%</td>
+              <td class="beneficio-val">4%</td>
+            </tr>
+            <tr>
+              <td>Ampliación de crédito</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-val">+5 días</td>
+              <td class="beneficio-val">+10 días</td>
+            </tr>
+            <tr>
+              <td>Acceso anticipado a nuevos productos</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-si">✓</td>
+              <td class="beneficio-si">✓</td>
+            </tr>
+            <tr>
+              <td>Asesoría técnica personalizada</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-si">✓</td>
+            </tr>
+            <tr>
+              <td>Regalo por aniversario de cliente</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-val">Kit básico</td>
+              <td class="beneficio-val">Kit premium</td>
+            </tr>
+            <tr>
+              <td>Participación en sorteos trimestrales</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-si">✓</td>
+              <td class="beneficio-val">Doble chance</td>
+            </tr>
+            <tr>
+              <td>Acceso a promociones exclusivas</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-si">✓</td>
+              <td class="beneficio-si">✓</td>
+            </tr>
+            <tr>
+              <td>Gestor de cuenta dedicado</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-no">—</td>
+              <td class="beneficio-si">✓</td>
+            </tr>
+            <tr>
+              <td>Bonus puntos por aniversario</td>
+              <td class="beneficio-val">+500 pts</td>
+              <td class="beneficio-val">+500 pts</td>
+              <td class="beneficio-val">+1,000 pts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 7. MECÁNICA DE OPERACIÓN ───────────────────────────────────── -->
+    <div class="seccion" id="mecanica">
+      <div class="sec-header">
+        <div class="sec-num">7</div>
+        <h2>Mecánica de Operación</h2>
+      </div>
+      <div class="mecanica-steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Registro del cliente</strong>
+            <p>El vendedor registra al cliente en el programa. El cliente recibe su número de socio ABAL+ y carta de bienvenida indicando su nivel inicial (Bronce).</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Acumulación de puntos</strong>
+            <p>Cada factura aprobada genera puntos automáticamente según las reglas del programa. Los bonus de diversificación y frecuencia se calculan al cierre de cada mes.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Consulta de saldo</strong>
+            <p>El cliente puede consultar sus puntos y nivel actual a través de su vendedor asignado en cada visita. En etapa futura: consulta digital vía portal o WhatsApp.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <strong>Recálculo mensual de nivel</strong>
+            <p>Al inicio de cada mes, el supervisor revisa los puntos acumulados de los últimos 12 meses y actualiza el nivel de cada cliente. Los cambios de tier se notifican formalmente.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <strong>Aplicación de beneficios</strong>
+            <p>Los descuentos se aplican en la siguiente factura. Los beneficios de crédito, asesoría y regalos son gestionados por el supervisor comercial al cambio de nivel.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <strong>Comunicación y fidelización</strong>
+            <p>El vendedor usa el programa como herramienta de conversación con el cliente en cada visita: cuántos puntos tiene, cuánto le falta para subir de nivel, qué beneficios le esperan.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 8. EJEMPLOS PRÁCTICOS ──────────────────────────────────────── -->
+    <div class="seccion" id="ejemplos">
+      <div class="sec-header">
+        <div class="sec-num">8</div>
+        <h2>Ejemplos Prácticos de Acumulación</h2>
+      </div>
+      <div class="ejemplos-grid">
+        <div class="ejemplo-card ej-a">
+          <div class="ejemplo-header">
+            <div class="ejemplo-header-label">Ejemplo A</div>
+            <div class="ejemplo-header-title">Cliente pequeño 🥉 Bronce</div>
+          </div>
+          <div class="ejemplo-body">
+            <ul class="ejemplo-detalles">
+              <li>50 sacos de trucha — 1 SKU</li>
+              <li>1 sola visita en el mes</li>
+              <li>Factura: S/. 2,500</li>
+            </ul>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+              <b>Cálculo:</b><br>
+              50 sacos × 1 = 50 pts<br>
+              S/. 2,500 / 100 × 2 = 50 pts<br>
+              <span style="color:#94a3b8">Sin bonus (1 SKU, 1 visita)</span>
+            </div>
+            <div class="ejemplo-total">
+              <div class="ejemplo-total-num">100</div>
+              <div class="ejemplo-total-label">puntos en el mes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ejemplo-card ej-b">
+          <div class="ejemplo-header">
+            <div class="ejemplo-header-label">Ejemplo B</div>
+            <div class="ejemplo-header-title">Cliente en crecimiento 🥈 Plata</div>
+          </div>
+          <div class="ejemplo-body">
+            <ul class="ejemplo-detalles">
+              <li>120 sacos — 3 líneas distintas</li>
+              <li>3 visitas en el mes</li>
+              <li>Factura: S/. 6,000</li>
+            </ul>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+              <b>Cálculo:</b><br>
+              120 sacos × 1 = 120 pts<br>
+              S/. 6,000 / 100 × 2 = 120 pts<br>
+              Diversificación (3 líneas) = +150 pts<br>
+              Frecuencia (3 visitas) = +100 pts
+            </div>
+            <div class="ejemplo-total">
+              <div class="ejemplo-total-num">490</div>
+              <div class="ejemplo-total-label">puntos en el mes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ejemplo-card ej-c">
+          <div class="ejemplo-header">
+            <div class="ejemplo-header-label">Ejemplo C</div>
+            <div class="ejemplo-header-title">Cliente premium 🥇 Oro</div>
+          </div>
+          <div class="ejemplo-body">
+            <ul class="ejemplo-detalles">
+              <li>350 sacos — 4 líneas distintas</li>
+              <li>4 visitas, supera meta</li>
+              <li>Factura: S/. 17,500</li>
+            </ul>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+              <b>Cálculo:</b><br>
+              350 sacos × 1 = 350 pts<br>
+              S/. 17,500 / 100 × 2 = 350 pts<br>
+              Diversificación (4 líneas) = +150 pts<br>
+              Frecuencia (4 visitas) = +100 pts<br>
+              Supera meta = +200 pts
+            </div>
+            <div class="ejemplo-total">
+              <div class="ejemplo-total-num">1,150</div>
+              <div class="ejemplo-total-label">puntos en el mes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 9. CRONOGRAMA ───────────────────────────────────────────────── -->
+    <div class="seccion" id="cronograma">
+      <div class="sec-header">
+        <div class="sec-num">9</div>
+        <h2>Cronograma de Implementación</h2>
+      </div>
+      <div class="gantt-legend">
+        <div class="gl-item"><div class="gl-dot" style="background:#3b82f6"></div> Diseño y reglas</div>
+        <div class="gl-item"><div class="gl-dot" style="background:#8b5cf6"></div> Piloto (50 clientes)</div>
+        <div class="gl-item"><div class="gl-dot" style="background:var(--dorado)"></div> Lanzamiento general</div>
+        <div class="gl-item"><div class="gl-dot" style="background:#10b981"></div> Optimización</div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="gantt-table">
+          <thead>
+            <tr>
+              <th style="width:200px">Fase / Actividad</th>
+              <th class="mes">Mes 1</th>
+              <th class="mes">Mes 2</th>
+              <th class="mes">Mes 3</th>
+              <th class="mes">Mes 4</th>
+              <th class="mes">Mes 5</th>
+              <th class="mes">Mes 6</th>
+              <th class="mes">Mes 7</th>
+              <th class="mes">Mes 8</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Definición de reglas y aprobación gerencial</td>
+              <td class="mes"><span class="gantt-cell g1"></span></td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Diseño de materiales de comunicación</td>
+              <td class="mes"><span class="gantt-cell g1"></span></td>
+              <td class="mes"><span class="gantt-cell g1"></span></td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Selección y capacitación de equipo piloto</td>
+              <td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g1"></span></td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Piloto con 50 clientes seleccionados</td>
+              <td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g2"></span></td>
+              <td class="mes"><span class="gantt-cell g2"></span></td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Ajuste de reglas y umbrales tras piloto</td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g2"></span></td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Capacitación de toda la fuerza de ventas</td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g3"></span></td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Lanzamiento general — toda la cartera</td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g3"></span></td>
+              <td class="mes"><span class="gantt-cell g3"></span></td>
+              <td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Primer recálculo oficial de tiers</td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g3"></span></td>
+              <td class="mes"></td><td class="mes"></td>
+            </tr>
+            <tr>
+              <td>Análisis de resultados y ajuste de beneficios</td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g4"></span></td>
+              <td class="mes"><span class="gantt-cell g4"></span></td>
+            </tr>
+            <tr>
+              <td>Integración con CRM (automatización de puntos)</td>
+              <td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td><td class="mes"></td>
+              <td class="mes"><span class="gantt-cell g4"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 10. KPIs DE ÉXITO ───────────────────────────────────────────── -->
+    <div class="seccion" id="kpis">
+      <div class="sec-header">
+        <div class="sec-num">10</div>
+        <h2>KPIs de Éxito del Programa</h2>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">👥</div>
+          <div class="kpi-meta">Clientes inscritos</div>
+          <div class="kpi-val6">60%</div>
+          <div class="kpi-sep">6 meses → 12 meses</div>
+          <div class="kpi-val12">90% ✓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">⬆️</div>
+          <div class="kpi-meta">Clientes que suben de tier</div>
+          <div class="kpi-val6">20%</div>
+          <div class="kpi-sep">6 meses → 12 meses</div>
+          <div class="kpi-val12">35% ✓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🎯</div>
+          <div class="kpi-meta">SKUs promedio / cliente / mes</div>
+          <div class="kpi-val6">+1.5 SKUs</div>
+          <div class="kpi-sep">6 meses → 12 meses</div>
+          <div class="kpi-val12">+2.5 SKUs ✓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🔄</div>
+          <div class="kpi-meta">Frecuencia de pedidos</div>
+          <div class="kpi-val6">+1 visita/mes</div>
+          <div class="kpi-sep">6 meses → 12 meses</div>
+          <div class="kpi-val12">+2 visitas/mes ✓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-meta">Ticket promedio mensual</div>
+          <div class="kpi-val6">+15%</div>
+          <div class="kpi-sep">6 meses → 12 meses</div>
+          <div class="kpi-val12">+25% ✓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🔒</div>
+          <div class="kpi-meta">Retención de clientes activos</div>
+          <div class="kpi-val6">85%</div>
+          <div class="kpi-sep">6 meses → 12 meses</div>
+          <div class="kpi-val12">90% ✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 11. COSTOS ─────────────────────────────────────────────────── -->
+    <div class="seccion" id="costos">
+      <div class="sec-header">
+        <div class="sec-num">11</div>
+        <h2>Inversión y Costos</h2>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Concepto</th><th>Descripción</th><th>Costo estimado</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Beneficios operativos — Descuentos</td>
+              <td>2–4% sobre facturas de clientes Plata y Oro. Depende de cartera migrada.</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td>Ampliación de crédito</td>
+              <td>Riesgo financiero adicional por +5/+10 días de crédito en clientes Plata/Oro</td>
+              <td>Evaluar por cartera</td>
+            </tr>
+            <tr>
+              <td>Materiales de comunicación</td>
+              <td>Kits de bienvenida, certificados de tier, materiales de campo para vendedores</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td>Regalos y sorteos</td>
+              <td>Kits básico y premium por aniversario, premios trimestrales por tier</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td>Gestión administrativa</td>
+              <td>Tiempo del equipo para recálculo mensual de puntos y gestión de beneficios</td>
+              <td>[___] h/mes</td>
+            </tr>
+            <tr>
+              <td>Integración al CRM (Fase 2)</td>
+              <td>Módulo de puntos y tiers en el CRM existente para automatizar cálculos</td>
+              <td>S/. [___________]</td>
+            </tr>
+            <tr>
+              <td class="total-row" colspan="2"><strong>Total estimado primer año</strong></td>
+              <td class="total-row"><strong>S/. [___________]</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="costo-placeholder">
+        ⚠️ Completar los costos estimados con datos reales antes de presentar a gerencia. Los descuentos deben calcularse sobre el volumen actual de clientes Plata/Oro proyectados.
+      </div>
+    </div>
+
+    <!-- ── 12. PRÓXIMOS PASOS ─────────────────────────────────────────── -->
+    <div class="seccion" id="pasos">
+      <div class="sec-header">
+        <div class="sec-num">12</div>
+        <h2>Próximos Pasos</h2>
+      </div>
+      <div class="pasos-list">
+        <div class="paso-item">
+          <div class="paso-num">1</div>
+          <p><strong>Aprobación de gerencia</strong>Validar el modelo de puntos, los umbrales de tier y el presupuesto de beneficios</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">2</div>
+          <p><strong>Validar umbrales con datos reales</strong>Analizar historial de compras de la cartera actual para calibrar los niveles de puntos por tier</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">3</div>
+          <p><strong>Diseñar materiales de comunicación</strong>Carta de bienvenida, certificado de nivel, tarjeta de socio y guía del vendedor</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">4</div>
+          <p><strong>Seleccionar clientes piloto</strong>Elegir 50 clientes representativos de distintas zonas y volúmenes para el piloto de 2 meses</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">5</div>
+          <p><strong>Capacitar al equipo comercial</strong>Taller de presentación del programa a supervisores y vendedores con guion de conversación</p>
+        </div>
+        <div class="paso-item">
+          <div class="paso-num">6</div>
+          <p><strong>Planificar integración al CRM</strong>Definir módulo de puntos y tiers en el CRM para automatizar cálculos a partir del Mes 8</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>ABAL+</strong> — Programa de Fidelización de Clientes<br>
+    ABAL S.A.C - Alimentos Balanceados del Peru &nbsp;·&nbsp; Propuesta confidencial v1.0 &nbsp;·&nbsp; Mayo 2026
+  </div>
+
+</div><!-- /doc -->
+
+</body>
+</html>

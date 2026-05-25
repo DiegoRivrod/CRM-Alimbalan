@@ -71,7 +71,28 @@ Deno.serve(async (req) => {
   )
 
   const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
-  const tablas: string[] = body.tablas ?? ['clientes', 'productos', 'metas']
+
+  // Validar body.tablas: solo se permite el whitelist (evita ejecutar SQL contra tablas arbitrarias)
+  const TABLAS_PERMITIDAS = ['clientes', 'productos', 'metas'] as const
+  type TablaMaestro = typeof TABLAS_PERMITIDAS[number]
+
+  const tablasIn: unknown = body.tablas ?? TABLAS_PERMITIDAS
+  if (!Array.isArray(tablasIn) || tablasIn.some(t => typeof t !== 'string')) {
+    return new Response(
+      JSON.stringify({ ok: false, error: 'body.tablas debe ser un array de strings' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
+  const desconocidas = (tablasIn as string[]).filter(t => !TABLAS_PERMITIDAS.includes(t as TablaMaestro))
+  if (desconocidas.length > 0) {
+    return new Response(
+      JSON.stringify({ ok: false, error: `Tablas no permitidas: ${desconocidas.join(', ')}. Solo: ${TABLAS_PERMITIDAS.join(', ')}` }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
+  const tablas: string[] = tablasIn as string[]
 
   const resultado: Record<string, unknown> = {}
 

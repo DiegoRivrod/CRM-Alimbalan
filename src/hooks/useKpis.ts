@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
 const SEMANAS = ['SEMANA 1', 'SEMANA 2', 'SEMANA 3', 'SEMANA 4'] as const
@@ -52,16 +52,9 @@ function semanaPrevia(label: string): string | null {
 }
 
 export function useKpisExtras(mes: string, anio: number, diasInactivos: number) {
-  const [clientesInactivos, setClientesInactivos] = useState<ClienteInactivo[]>([])
-  const [prospectosAbiertos, setProspectosAbiertos] = useState<number>(0)
-  const [semanaStats, setSemanaStats] = useState<SemanaComparativa | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      setError(null)
+  const q = useQuery({
+    queryKey: ['kpis', 'extras', { mes, anio, diasInactivos }],
+    queryFn: async () => {
       const hoy = new Date()
       const mesCal = mes.toUpperCase()
       const mesesIdx = [
@@ -69,134 +62,118 @@ export function useKpisExtras(mes: string, anio: number, diasInactivos: number) 
         'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
       ]
       const idxMesSel = mesesIdx.indexOf(mesCal)
-      const esMesActual =
-        anio === hoy.getFullYear() && idxMesSel === hoy.getMonth()
+      const esMesActual = anio === hoy.getFullYear() && idxMesSel === hoy.getMonth()
 
-      try {
-        const { data: rawView, error: vErr } = await supabase
-          .from('clientes_ultima_factura')
-          .select('idcliente,nombre,responsable,ultima_fecha_factura')
+      // 1. Clientes inactivos
+      const { data: rawView, error: vErr } = await supabase
+        .from('clientes_ultima_factura')
+        .select('idcliente,nombre,responsable,ultima_fecha_factura')
 
-        if (vErr) {
-          setError(vErr.message)
-          setLoading(false)
-          return
+      if (vErr) throw new Error(vErr.message)
+
+      const rows = (rawView ?? []) as Array<{
+        idcliente: string
+        nombre: string | null
+        responsable: string | null
+        ultima_fecha_factura: string | null
+      }>
+
+      const inactivos: ClienteInactivo[] = []
+      for (const r of rows) {
+        const ult = r.ultima_fecha_factura
+        let dias: number | null = null
+        if (ult) dias = diasEntre(ult, hoy)
+        const sinCompra = ult == null || (dias !== null && dias > diasInactivos)
+        if (sinCompra) {
+          inactivos.push({
+            idcliente: r.idcliente,
+            nombre: r.nombre ?? r.idcliente,
+            responsable: r.responsable,
+            ultima_fecha_factura: ult,
+            dias_sin_compra: ult ? dias : null,
+          })
         }
-
-        const rows = (rawView ?? []) as Array<{
-          idcliente: string
-          nombre: string | null
-          responsable: string | null
-          ultima_fecha_factura: string | null
-        }>
-
-        const inactivos: ClienteInactivo[] = []
-        for (const r of rows) {
-          const ult = r.ultima_fecha_factura
-          let dias: number | null = null
-          if (ult) dias = diasEntre(ult, hoy)
-          const sinCompra = ult == null || (dias !== null && dias > diasInactivos)
-          if (sinCompra) {
-            inactivos.push({
-              idcliente: r.idcliente,
-              nombre: r.nombre ?? r.idcliente,
-              responsable: r.responsable,
-              ultima_fecha_factura: ult,
-              dias_sin_compra: ult ? dias : null,
-            })
-          }
-        }
-        inactivos.sort((a, b) => {
-          const da = a.dias_sin_compra ?? 99999
-          const db = b.dias_sin_compra ?? 99999
-          return db - da
-        })
-        setClientesInactivos(inactivos.slice(0, 80))
-
-        const { count: pc, error: pErr } = await supabase
-          .from('prospectos')
-          .select('id', { count: 'exact', head: true })
-          .in('estado', ['nuevo', 'seguimiento'])
-
-        if (pErr) {
-          setError(pErr.message)
-          setLoading(false)
-          return
-        }
-        setProspectosAbiertos(pc ?? 0)
-
-        const q = supabase
-          .from('facturas')
-          .select('semana,valortotal,mes,anio')
-          .neq('tipodocume', 'Notas de Crédito')
-          .gt('valortotal', 0)
-          .eq('mes', mesCal)
-          .eq('anio', anio)
-
-        const { data: rawF, error: fErr } = await q
-        if (fErr) {
-          setError(fErr.message)
-          setLoading(false)
-          return
-        }
-
-        const facturas = (rawF ?? []) as Array<{
-          semana: string | null
-          valortotal: number | null
-        }>
-
-        const agg = new Map<string, number>()
-        for (const s of SEMANAS) agg.set(s, 0)
-        for (const f of facturas) {
-          const lab = f.semana?.trim()
-          if (!lab || !agg.has(lab)) continue
-          agg.set(lab, (agg.get(lab) ?? 0) + (f.valortotal ?? 0))
-        }
-
-        const porSemana: SemanaVentas[] = SEMANAS.map((label) => ({
-          label,
-          ventas: Math.round(agg.get(label) ?? 0),
-        }))
-
-        let semanaCal: string | null = null
-        let semanaAnt: string | null = null
-        let vCal = 0
-        let vAnt = 0
-        let pct: number | null = null
-
-        if (esMesActual) {
-          semanaCal = semanaDelMesPorDia(hoy.getDate())
-          semanaAnt = semanaPrevia(semanaCal)
-          vCal = agg.get(semanaCal) ?? 0
-          vAnt = semanaAnt ? (agg.get(semanaAnt) ?? 0) : 0
-          if (semanaAnt && vAnt > 0) pct = Math.round(((vCal - vAnt) / vAnt) * 100)
-          else if (semanaAnt && vAnt === 0 && vCal > 0) pct = 100
-          else pct = null
-        }
-
-        setSemanaStats({
-          porSemana,
-          semanaCalendario: semanaCal,
-          semanaAnterior: semanaAnt,
-          ventasSemanaCalendario: Math.round(vCal),
-          ventasSemanaAnterior: Math.round(vAnt),
-          pctCambioSemanal: pct,
-          esMesSeleccionadoIgualCalendario: esMesActual,
-        })
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al cargar KPIs')
-      } finally {
-        setLoading(false)
       }
-    }
-    load()
-  }, [mes, anio, diasInactivos])
+      inactivos.sort((a, b) => {
+        const da = a.dias_sin_compra ?? 99999
+        const db = b.dias_sin_compra ?? 99999
+        return db - da
+      })
+      const clientesInactivos = inactivos.slice(0, 80)
+
+      // 2. Prospectos abiertos
+      const { count: pc, error: pErr } = await supabase
+        .from('prospectos')
+        .select('id', { count: 'exact', head: true })
+        .in('estado', ['nuevo', 'seguimiento'])
+
+      if (pErr) throw new Error(pErr.message)
+      const prospectosAbiertos = pc ?? 0
+
+      // 3. Ventas por semana del mes/año
+      const { data: rawF, error: fErr } = await supabase
+        .from('facturas')
+        .select('semana,valortotal,mes,anio')
+        .neq('tipodocume', 'Notas de Crédito')
+        .gt('valortotal', 0)
+        .eq('mes', mesCal)
+        .eq('anio', anio)
+
+      if (fErr) throw new Error(fErr.message)
+
+      const facturas = (rawF ?? []) as Array<{
+        semana: string | null
+        valortotal: number | null
+      }>
+
+      const agg = new Map<string, number>()
+      for (const s of SEMANAS) agg.set(s, 0)
+      for (const f of facturas) {
+        const lab = f.semana?.trim()
+        if (!lab || !agg.has(lab)) continue
+        agg.set(lab, (agg.get(lab) ?? 0) + (f.valortotal ?? 0))
+      }
+
+      const porSemana: SemanaVentas[] = SEMANAS.map((label) => ({
+        label,
+        ventas: Math.round(agg.get(label) ?? 0),
+      }))
+
+      let semanaCal: string | null = null
+      let semanaAnt: string | null = null
+      let vCal = 0
+      let vAnt = 0
+      let pct: number | null = null
+
+      if (esMesActual) {
+        semanaCal = semanaDelMesPorDia(hoy.getDate())
+        semanaAnt = semanaPrevia(semanaCal)
+        vCal = agg.get(semanaCal) ?? 0
+        vAnt = semanaAnt ? (agg.get(semanaAnt) ?? 0) : 0
+        if (semanaAnt && vAnt > 0) pct = Math.round(((vCal - vAnt) / vAnt) * 100)
+        else if (semanaAnt && vAnt === 0 && vCal > 0) pct = 100
+        else pct = null
+      }
+
+      const semanaStats: SemanaComparativa = {
+        porSemana,
+        semanaCalendario: semanaCal,
+        semanaAnterior: semanaAnt,
+        ventasSemanaCalendario: Math.round(vCal),
+        ventasSemanaAnterior: Math.round(vAnt),
+        pctCambioSemanal: pct,
+        esMesSeleccionadoIgualCalendario: esMesActual,
+      }
+
+      return { clientesInactivos, prospectosAbiertos, semanaStats }
+    },
+  })
 
   return {
-    clientesInactivos,
-    prospectosAbiertos,
-    semanaStats,
-    loading,
-    error,
+    clientesInactivos: q.data?.clientesInactivos ?? [],
+    prospectosAbiertos: q.data?.prospectosAbiertos ?? 0,
+    semanaStats: q.data?.semanaStats ?? null,
+    loading: q.isLoading,
+    error: q.error ? q.error.message : null,
   }
 }

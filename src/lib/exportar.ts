@@ -3,6 +3,7 @@
  * ya instalada para el ETL de importación.
  */
 import * as XLSX from 'xlsx'
+import type { TierCliente } from '@/types/supabase'
 
 /**
  * Genera y descarga un archivo .xlsx con las filas indicadas.
@@ -95,4 +96,21 @@ export function exportarProspectos(
     'Fecha registro':  new Date(p.created_at).toLocaleDateString('es-PE'),
   }))
   descargarExcel('Prospectos_abiertos', filas)
+}
+
+export function exportarTiersAbalPlus(
+  tiers: TierCliente[],
+  clientesMap?: Map<string, string>,
+) {
+  const filas = tiers.map(t => ({
+    'ID Cliente':    t.idcliente,
+    'Nombre':        clientesMap?.get(t.idcliente) ?? '—',
+    'Tier Actual':   t.tier.toUpperCase(),
+    'Puntos 12M':    t.puntos_12m,
+    'Tier Anterior': t.tier_anterior?.toUpperCase() ?? '—',
+    'Desde':         t.tier_desde ?? '—',
+    'Actualizado':   new Date(t.actualizado_at).toLocaleDateString('es-PE'),
+  }))
+  const fecha = new Date().toISOString().split('T')[0]
+  descargarExcel(`Tiers_ABAL_Plus_${fecha}`, filas)
 }

@@ -53,10 +53,68 @@ jobs:
       - run: npm ci
       - run: npm test
 
+  db-validate:
+    name: DB Validate (migrations + RLS)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGPASSWORD: postgres
+      DB_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      # Crear los schemas y tablas que Supabase provee en runtime. En CI los
+      # stubeamos con lo mínimo para que las migraciones y policies se apliquen.
+      - name: Bootstrap Supabase auth (stub)
+        run: |
+          psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          create extension if not exists "pgcrypto";
+          create schema if not exists auth;
+          create table auth.users (
+            id uuid primary key default gen_random_uuid(),
+            email text,
+            created_at timestamptz default now()
+          );
+          create or replace function auth.uid() returns uuid language sql stable as $$
+            select (nullif(current_setting('request.jwt.claims', true), '')::json->>'sub')::uuid;
+          $$;
+          create role authenticated;
+          create role anon;
+          create role service_role;
+          SQL
+
+      - name: Apply migrations in order
+        run: |
+          set -e
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            # Saltar migrations que requieren extensiones no disponibles en postgres:15
+            # (pg_cron, pg_net las habilita Supabase platform en runtime).
+            case "$f" in
+              *003_cron_sync.sql) echo "── Skipping $f (requires pg_cron/pg_net)"; continue ;;
+            esac
+            echo "── Applying $f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: Run RLS tests
+        run: psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test]
+    needs: [lint, typecheck, test, db-validate]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 import type { Tarea, EstadoTarea } from '@/types/supabase'
 
 // ── Tipos para filtros ───────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ async function enriquecerTareas(tareas: Tarea[]): Promise<TareaConNombres[]> {
     ...tareas.map(t => t.creado_por),
   ])]
   const prospectoIds = [...new Set(tareas.map(t => t.prospecto_id).filter(Boolean))] as string[]
-  const clienteIds = [...new Set(tareas.map(t => t.idcliente).filter(Boolean))] as string[]
+  const clienteIds   = [...new Set(tareas.map(t => t.idcliente).filter(Boolean))] as string[]
 
   const [perfilesRes, prospectosRes, clientesRes] = await Promise.all([
     supabase.from('profiles').select('id, nombre').in('id', userIds),
@@ -70,56 +71,58 @@ async function enriquecerTareas(tareas: Tarea[]): Promise<TareaConNombres[]> {
   return tareas.map(t => ({
     ...t,
     asignado_nombre: nombres[t.asignado_a] ?? 'Usuario',
-    creador_nombre: nombres[t.creado_por] ?? 'Usuario',
+    creador_nombre:  nombres[t.creado_por] ?? 'Usuario',
     prospecto_nombre: t.prospecto_id ? prospectosNombres[t.prospecto_id] ?? null : null,
-    cliente_nombre: t.idcliente ? clientesNombres[t.idcliente] ?? null : null,
+    cliente_nombre:   t.idcliente ? clientesNombres[t.idcliente] ?? null : null,
   }))
 }
 
-// ── Hook principal ───────────────────────────────────────────────────────────
+// ── useTareas — lista filtrable ──────────────────────────────────────────────
 
 export function useTareas(filtros: FiltrosTareas = {}) {
-  const [tareas, setTareas] = useState<TareaConNombres[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const q = useQuery({
+    queryKey: ['tareas', 'lista', filtros],
+    queryFn: async (): Promise<TareaConNombres[]> => {
+      let req = supabase
+        .from('tareas')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-  const cargar = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+      if (filtros.estado && filtros.estado !== 'todas') {
+        req = req.eq('estado', filtros.estado)
+      }
+      if (filtros.asignado_a)  req = req.eq('asignado_a', filtros.asignado_a)
+      if (filtros.prospecto_id) req = req.eq('prospecto_id', filtros.prospecto_id)
+      if (filtros.idcliente)    req = req.eq('idcliente', filtros.idcliente)
+      if (filtros.vencidas) {
+        req = req.in('estado', ['pendiente', 'en_progreso'])
+          .lt('fecha_vencimiento', new Date().toISOString().split('T')[0])
+      }
 
-    let q = supabase
-      .from('tareas')
-      .select('*')
-      .order('created_at', { ascending: false })
+      const { data, error } = await req
+      if (error) throw new Error(error.message)
+      return enriquecerTareas((data ?? []) as Tarea[])
+    },
+  })
 
-    if (filtros.estado && filtros.estado !== 'todas') {
-      q = q.eq('estado', filtros.estado)
-    }
-    if (filtros.asignado_a) q = q.eq('asignado_a', filtros.asignado_a)
-    if (filtros.prospecto_id) q = q.eq('prospecto_id', filtros.prospecto_id)
-    if (filtros.idcliente) q = q.eq('idcliente', filtros.idcliente)
-    if (filtros.vencidas) {
-      q = q.in('estado', ['pendiente', 'en_progreso'])
-        .lt('fecha_vencimiento', new Date().toISOString().split('T')[0])
-    }
-
-    const { data, error: err } = await q
-    if (err) { setError(err.message); setLoading(false); return }
-
-    const enriquecidas = await enriquecerTareas((data ?? []) as Tarea[])
-    setTareas(enriquecidas)
-    setLoading(false)
-  }, [filtros.estado, filtros.asignado_a, filtros.prospecto_id, filtros.idcliente, filtros.vencidas])
-
-  useEffect(() => { cargar() }, [cargar])
-
-  return { tareas, loading, error, recargar: cargar }
+  return {
+    tareas: q.data ?? [],
+    loading: q.isLoading,
+    error: q.error ? q.error.message : null,
+    recargar: () => q.refetch(),
+  }
 }
 
-// ── Acciones ─────────────────────────────────────────────────────────────────
+// ── Acciones (mutaciones; invalidan caches relacionados) ─────────────────────
+
+function invalidarTareasYActividad() {
+  queryClient.invalidateQueries({ queryKey: ['tareas'] })
+  queryClient.invalidateQueries({ queryKey: ['actividad'] })
+  queryClient.invalidateQueries({ queryKey: ['notificaciones'] })
+}
 
 export async function crearTarea(
-  payload: CrearTareaPayload
+  payload: CrearTareaPayload,
 ): Promise<{ data: Tarea | null; error: string | null }> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { data: null, error: 'No autenticado' }
@@ -161,6 +164,8 @@ export async function crearTarea(
         link: '/tareas',
       } as never)
     }
+
+    invalidarTareasYActividad()
   }
 
   return { data: (data as unknown as Tarea) ?? null, error: error?.message ?? null }
@@ -168,12 +173,13 @@ export async function crearTarea(
 
 export async function actualizarTarea(
   id: string,
-  cambios: Partial<Pick<Tarea, 'titulo' | 'descripcion' | 'tipo' | 'prioridad' | 'estado' | 'fecha_vencimiento' | 'asignado_a'>>
+  cambios: Partial<Pick<Tarea, 'titulo' | 'descripcion' | 'tipo' | 'prioridad' | 'estado' | 'fecha_vencimiento' | 'asignado_a'>>,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('tareas')
     .update(cambios as never)
     .eq('id', id)
+  if (!error) queryClient.invalidateQueries({ queryKey: ['tareas'] })
   return { error: error?.message ?? null }
 }
 
@@ -199,6 +205,8 @@ export async function completarTarea(id: string): Promise<{ error: string | null
       idcliente: t.idcliente,
       usuario_id: user.id,
     } as never)
+
+    invalidarTareasYActividad()
   }
 
   return { error: error?.message ?? null }

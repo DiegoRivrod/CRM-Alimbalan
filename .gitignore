@@ -36,3 +36,6 @@ dist-ssr
 # OS
 Thumbs.db
 Desktop.ini
+
+# CSVs de prueba en la raíz (datos comerciales — no versionar)
+/*.csv

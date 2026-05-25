@@ -8,6 +8,7 @@
  */
 
 import * as XLSX from 'xlsx'
+import Papa from 'papaparse'
 import type { Cliente, Producto, Meta } from '@/types/supabase'
 import { normalizarVisitas, type VisitaRaw, type VisitaNormalizada } from './etl'
 
@@ -109,9 +110,14 @@ export async function fetchMetas(): Promise<Omit<Meta, 'updated_at'>[]> {
 // ─── Visitas (CSV subido manualmente) ────────────────────────────────────────
 
 export async function parseVisitasCSV(file: File): Promise<VisitaNormalizada[]> {
-  const buffer = await file.arrayBuffer()
-  const wb = XLSX.read(buffer, { type: 'array' })
-  const ws = wb.Sheets[wb.SheetNames[0]]
-  const rows = XLSX.utils.sheet_to_json<VisitaRaw>(ws, { defval: null })
-  return normalizarVisitas(rows)
+  // Papa Parse maneja UTF-8 correctamente y no intenta interpretar fechas como
+  // serial de Excel (a diferencia de XLSX.read, que rompía los headers con `¿`
+  // y devolvía fechas heterogéneas).
+  const text = await file.text()
+  const result = Papa.parse<VisitaRaw>(text, {
+    header: true,
+    skipEmptyLines: true,
+    dynamicTyping: false,
+  })
+  return normalizarVisitas(result.data)
 }

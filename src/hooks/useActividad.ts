@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 import type { Actividad, TipoActividad } from '@/types/supabase'
 
 export type ActividadConAutor = Actividad & { autor_nombre: string }
@@ -7,7 +8,7 @@ export type ActividadConAutor = Actividad & { autor_nombre: string }
 // ── Helper: resolver nombres de autores ──────────────────────────────────────
 
 async function resolverAutores(
-  actividades: Actividad[]
+  actividades: Actividad[],
 ): Promise<ActividadConAutor[]> {
   if (actividades.length === 0) return []
 
@@ -28,7 +29,7 @@ async function resolverAutores(
   }))
 }
 
-// ── crearActividad (compartido) ───────────────────────────────────────────────
+// ── insertarActividad (mutación; invalida cache después) ─────────────────────
 
 async function insertarActividad(payload: {
   tipo: TipoActividad
@@ -61,98 +62,86 @@ async function insertarActividad(payload: {
     .eq('id', user.id)
     .single()
 
+  // Invalidar todas las vistas de actividad para que se refresquen
+  queryClient.invalidateQueries({ queryKey: ['actividad'] })
+
   return {
     ...(raw as Actividad),
     autor_nombre: (perfil as { nombre: string } | null)?.nombre ?? 'Tú',
   }
 }
 
-// ── useActividadProspecto ─────────────────────────────────────────────────────
+// ── useActividadProspecto ────────────────────────────────────────────────────
 
 export function useActividadProspecto(prospecto_id: string) {
-  const [actividades, setActividades] = useState<ActividadConAutor[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const cargar = useCallback(async () => {
-    if (!prospecto_id) return
-    setLoading(true)
-    const { data: raw } = await supabase
-      .from('actividad')
-      .select('*')
-      .eq('prospecto_id', prospecto_id)
-      .order('created_at', { ascending: false })
-
-    const lista = await resolverAutores((raw ?? []) as Actividad[])
-    setActividades(lista)
-    setLoading(false)
-  }, [prospecto_id])
-
-  useEffect(() => { cargar() }, [cargar])
-
-  const crearActividad = useCallback(
-    async (tipo: TipoActividad, nota?: string) => {
-      const nueva = await insertarActividad({ tipo, nota, prospecto_id })
-      if (nueva) setActividades(prev => [nueva, ...prev])
+  const q = useQuery({
+    queryKey: ['actividad', 'prospecto', prospecto_id],
+    enabled: !!prospecto_id,
+    queryFn: async (): Promise<ActividadConAutor[]> => {
+      const { data: raw, error } = await supabase
+        .from('actividad')
+        .select('*')
+        .eq('prospecto_id', prospecto_id)
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      return resolverAutores((raw ?? []) as Actividad[])
     },
-    [prospecto_id]
-  )
+  })
 
-  return { actividades, loading, crearActividad }
+  return {
+    actividades: q.data ?? [],
+    loading: q.isLoading,
+    crearActividad: async (tipo: TipoActividad, nota?: string) => {
+      await insertarActividad({ tipo, nota, prospecto_id })
+      // El invalidate dentro de insertarActividad ya refresca esta query
+    },
+  }
 }
 
-// ── useActividadCliente ───────────────────────────────────────────────────────
+// ── useActividadCliente ──────────────────────────────────────────────────────
 
 export function useActividadCliente(idcliente: string) {
-  const [actividades, setActividades] = useState<ActividadConAutor[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const cargar = useCallback(async () => {
-    if (!idcliente) return
-    setLoading(true)
-    const { data: raw } = await supabase
-      .from('actividad')
-      .select('*')
-      .eq('idcliente', idcliente)
-      .order('created_at', { ascending: false })
-
-    const lista = await resolverAutores((raw ?? []) as Actividad[])
-    setActividades(lista)
-    setLoading(false)
-  }, [idcliente])
-
-  useEffect(() => { cargar() }, [cargar])
-
-  const crearActividad = useCallback(
-    async (tipo: TipoActividad, nota?: string) => {
-      const nueva = await insertarActividad({ tipo, nota, idcliente })
-      if (nueva) setActividades(prev => [nueva, ...prev])
+  const q = useQuery({
+    queryKey: ['actividad', 'cliente', idcliente],
+    enabled: !!idcliente,
+    queryFn: async (): Promise<ActividadConAutor[]> => {
+      const { data: raw, error } = await supabase
+        .from('actividad')
+        .select('*')
+        .eq('idcliente', idcliente)
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      return resolverAutores((raw ?? []) as Actividad[])
     },
-    [idcliente]
-  )
+  })
 
-  return { actividades, loading, crearActividad }
+  return {
+    actividades: q.data ?? [],
+    loading: q.isLoading,
+    crearActividad: async (tipo: TipoActividad, nota?: string) => {
+      await insertarActividad({ tipo, nota, idcliente })
+    },
+  }
 }
 
-// ── useActividadGlobal (para call center) ────────────────────────────────────
+// ── useActividadGlobal (call center) ─────────────────────────────────────────
 
 export function useActividadGlobal(limite = 20) {
-  const [actividades, setActividades] = useState<ActividadConAutor[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const cargar = async () => {
-      const { data: raw } = await supabase
+  const q = useQuery({
+    queryKey: ['actividad', 'global', limite],
+    queryFn: async (): Promise<ActividadConAutor[]> => {
+      const { data: raw, error } = await supabase
         .from('actividad')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limite)
+      if (error) throw new Error(error.message)
+      return resolverAutores((raw ?? []) as Actividad[])
+    },
+  })
 
-      const lista = await resolverAutores((raw ?? []) as Actividad[])
-      setActividades(lista)
-      setLoading(false)
-    }
-    cargar()
-  }, [limite])
-
-  return { actividades, loading }
+  return {
+    actividades: q.data ?? [],
+    loading: q.isLoading,
+  }
 }

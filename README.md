@@ -1,73 +1,90 @@
-# React + TypeScript + Vite
+# CRM Comercial — ABAL S.A.C.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CRM B2B para **ALIMENTOS BALANCEADOS DEL PERU S.A.C.** Maneja clientes, vendedores,
+prospectos, facturas, visitas, KPIs y el programa de fidelización **ABAL+** (puntos + tiers).
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Capa | Tecnología |
+|------|------------|
+| Frontend | React 19 + TypeScript + Vite |
+| UI | Tailwind CSS + shadcn/ui + Radix |
+| Routing | React Router 7 |
+| Charts | Recharts |
+| Backend | Supabase (PostgreSQL + Auth + Edge Functions + RLS) |
+| Tests | Vitest + Testing Library (jsdom) |
+| Deploy | Vercel |
 
-## React Compiler
+## Estado y fuente de verdad
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+El estado del proyecto, fases y arquitectura viven en **[PROGRESO_CRM.md](./PROGRESO_CRM.md)**.
+Antes de cambiar lógica de negocio, schema o flujos, léelo.
 
-## Expanding the ESLint configuration
+Convenciones del repo en **[CLAUDE.md](./CLAUDE.md)**.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Setup local
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install                       # con error 403 → ver "Reglas críticas" abajo
+cp .env.example .env.local        # rellenar con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
+npm run dev                       # http://localhost:5178
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Script | Qué hace |
+|--------|----------|
+| `npm run dev` | Servidor Vite en `http://localhost:5178` |
+| `npm run build` | TypeScript + build de producción |
+| `npm run typecheck` | `tsc -b --noEmit` |
+| `npm run lint` | ESLint sobre todo el proyecto |
+| `npm test` | Tests Vitest (ETL, ABAL+, utils) |
+| `npm run test:watch` | Vitest en modo watch |
+| `npm run test:rls` | Tests SQL de RLS (necesita `SUPABASE_DB_URL`) |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Estructura
+
 ```
+src/
+├── components/   # layout (AppLayout, Sidebar, ProtectedRoute) + reutilizables
+├── hooks/        # 1 hook por dominio (useClientes, useProspectos, useAbalPlus, …)
+├── lib/          # supabase, etl, abalPlus, googleSheets, utils
+├── pages/        # 1 carpeta por módulo (clientes, prospectos, vendedores, …)
+├── types/        # supabase.ts — tipos manuales (sin codegen)
+└── test/setup.ts # bootstrap de @testing-library/jest-dom
+
+supabase/
+├── migrations/   # SQL versionado (001…007)
+├── functions/    # Edge Functions Deno (calcular-puntos, sync-maestros, …)
+└── tests/        # rls.test.sql + README de cómo correrlo
+```
+
+## Roles y RLS
+
+| Rol | Acceso |
+|-----|--------|
+| `gerente` | SELECT en todo |
+| `supervisor` | SELECT en todo + UPDATE en prospectos |
+| `vendedor` | SELECT solo donde `fuerza_de_venta = su propio valor` |
+
+El campo `fuerza_de_venta` en `profiles` se usa como discriminador RLS.
+
+## Reglas críticas
+
+- **Facturas son inmutables.** Nunca `DELETE` en `public.facturas` — son datos
+  financieros. Re-importar = UPSERT con constraint `facturas_linea_unica (idserie, numero, idarticulo)`.
+- **`npm install` con error 403:**
+  ```bash
+  npm install --strict-ssl false --registry https://registry.npmmirror.com
+  ```
+- **No incluir "Co-Authored-By: Claude"** en commits.
+
+## Deploy
+
+```bash
+vercel --prod
+```
+
+Las migraciones de Supabase se aplican manualmente vía Dashboard → SQL Editor
+o `supabase db push` (CLI). Ver [supabase/tests/README.md](./supabase/tests/README.md)
+para tests de DB.

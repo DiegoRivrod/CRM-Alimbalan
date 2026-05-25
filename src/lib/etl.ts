@@ -385,11 +385,27 @@ function parseLatLng(loc: string): [number | null, number | null] {
   return [null, null]
 }
 
+// Google Forms peruano devuelve "D/M/YYYY H:mm:ss" (día/mes/año). Convertimos a ISO
+// para que Supabase lo acepte como timestamptz sin ambigüedad MM/DD vs DD/MM.
+export function parseFechaPeruana(s: string): string | null {
+  if (!s) return null
+  const [fecha, hora = '0:00:00'] = s.trim().split(/\s+/)
+  const partesFecha = fecha.split('/').map(n => parseInt(n, 10))
+  const partesHora  = hora.split(':').map(n => parseInt(n, 10))
+  if (partesFecha.length !== 3 || partesFecha.some(isNaN)) return null
+  const [d, m, y] = partesFecha
+  const [hh = 0, mm = 0, ss = 0] = partesHora
+  const date = new Date(y, m - 1, d, hh, mm, ss)
+  return isNaN(date.getTime()) ? null : date.toISOString()
+}
+
 export function normalizarVisitas(rows: VisitaRaw[]): VisitaNormalizada[] {
   const result: VisitaNormalizada[] = []
 
   for (const row of rows) {
-    const marcaTemporal = str(row['Marca temporal'])
+    const marcaTemporalRaw = str(row['Marca temporal'])
+    const marcaTemporal    = parseFechaPeruana(marcaTemporalRaw)
+    if (!marcaTemporal) continue  // sin fecha válida, no podemos insertar (NOT NULL en BD)
     const fuerzaDeVenta = str(row['SELECCIONE LA FUERZA DE VENTAS'])
     const localizacion  = str(row['Localización']) || null
     const [latitud, longitud] = localizacion ? parseLatLng(localizacion) : [null, null]
@@ -398,14 +414,20 @@ export function normalizarVisitas(rows: VisitaRaw[]): VisitaNormalizada[] {
       const esNuevoRaw = str(row[`${prefijo}. ¿El Cliente a visitar es nuevo?`])
       if (!esNuevoRaw) continue   // columna vacía → no hubo visita N
 
-      const esClienteNuevo = esNuevoRaw.toLowerCase() === 'si'
-
-      // Cliente existente: viene de un select → tiene IDCLIENTE implícito en el nombre
       const clienteSeleccionado = str(row[`${prefijo}. SELECCIONE EL CLIENTE`]) || null
       const nombreNuevo         = str(row[`${prefijo}. REGISTRE EL NOMBRE DEL CLIENTE NUEVO`]) || null
 
       // Si no hay nombre en ninguna columna, saltamos
       if (!clienteSeleccionado && !nombreNuevo) continue
+
+      // Reclasificación defensiva:
+      // - Si "es nuevo" no es "Si" pero tampoco hay cliente seleccionado, tratamos como nuevo
+      //   siempre que tengamos algún nombre. Esto cubre tanto vendedores que escribieron basura
+      //   en el Si/No (ej. una fecha) como los que marcaron "No" sin elegir cliente del dropdown.
+      let esClienteNuevo = esNuevoRaw.toLowerCase() === 'si'
+      if (!esClienteNuevo && !clienteSeleccionado) {
+        esClienteNuevo = true
+      }
 
       const potencialRaw = row[`${prefijo}. Por favor, indique el potencial de consumo del cliente en toneladas (TN), entendiendo este como el volumen aproximado que podría llegar a adquirir de nuestra parte.  `]
 
