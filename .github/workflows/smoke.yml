@@ -1,0 +1,77 @@
+##
+## Smoke tests post-deploy.
+##
+## Se dispara cuando Vercel notifica un Production Deployment Success vía
+## repository_dispatch (Deploy Hook configurado manualmente en el dashboard
+## de Vercel — ver HANDOFF.md sección "Smoke tests").
+##
+## Anti-pattern: NO usar `on: deployment_status` (deprecado por GitHub).
+##              NO usar `on: push` aquí — los smoke tests deben correr DESPUÉS
+##              del deploy a producción, no antes.
+##
+## Secrets requeridos:
+##   SUPABASE_E2E_USER_EMAIL     — usuario de pruebas (rol gerente)
+##   SUPABASE_E2E_USER_PASSWORD  — password del usuario de pruebas
+##
+
+name: Smoke (post-deploy)
+
+on:
+  repository_dispatch:
+    types: ['vercel.deployment.success']
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'URL contra la que correr los smoke tests'
+        required: true
+        default: 'https://crm-abal.vercel.app'
+
+concurrency:
+  group: smoke-${{ github.event.client_payload.url || github.event.inputs.base_url }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Playwright smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Solo correr en deploys a producción (no previews)
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.client_payload.target == 'production'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        run: npm run test:e2e -- --grep @smoke
+        env:
+          BASE_URL: ${{ github.event.client_payload.url || github.event.inputs.base_url }}
+          SUPABASE_E2E_USER_EMAIL: ${{ secrets.SUPABASE_E2E_USER_EMAIL }}
+          SUPABASE_E2E_USER_PASSWORD: ${{ secrets.SUPABASE_E2E_USER_PASSWORD }}
+          CI: 'true'
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Annotate failure
+        if: failure()
+        run: |
+          echo "::error::Smoke tests failed against ${BASE_URL:-(unknown)}"
+        env:
+          BASE_URL: ${{ github.event.client_payload.url || github.event.inputs.base_url }}

@@ -67,8 +67,28 @@ Esperado: total ~1036, con_idcliente entre 186 y ~850, con_gps cercano al total.
 2. **Commit grande** de todo el día. Sugerencia: `feat(qa): RLS fix + TanStack Query + ETL visitas (papaparse + idcliente by name) + tests`. **Sin `Co-Authored-By: Claude`**.
 3. **Decidir si automatizar el sync de visitas** (Edge Function + pg_cron diario) o dejarlo manual. Conversación pendiente del día.
 4. WhatsApp Cloud API (acción manual 3) — guía en `docs/WHATSAPP_INTEGRATION.md`.
-5. F16.5 dashboard `/abal-plus`.
-6. CI/CD Fase 3 + 4.
+5. ~~F16.5 dashboard `/abal-plus`~~ ✅ entregado en commit `14a6e02` (2026-05-25).
+6. **CI/CD Fase 3 + 4** — código en rama `feat/cicd-f3-f4`. Pendientes manuales antes de mergear: ver bloque "Smoke tests" abajo.
+
+### Smoke tests post-deploy (Fase 3-4) — acciones manuales
+
+Antes de mergear `feat/cicd-f3-f4` a `main`, configurar (una sola vez):
+
+1. **Crear usuario e2e en Supabase** (Dashboard → Authentication → Users):
+   - Email: `e2e@abal.test` · password generado · luego SQL:
+     `insert into public.perfiles (id, email, rol) values ('<uuid>', 'e2e@abal.test', 'gerente');`
+2. **Secrets de GitHub** (`gh secret set ...`):
+   - `SUPABASE_E2E_USER_EMAIL` = `e2e@abal.test`
+   - `SUPABASE_E2E_USER_PASSWORD` = `<password>`
+3. **Deploy Hook en Vercel** (Settings → Git → Deploy Hooks):
+   - Outgoing webhook · evento "Production Deployment Succeeded"
+   - URL: `https://api.github.com/repos/DiegoRivrod/CRM-Alimbalan/dispatches`
+   - Headers: `Authorization: Bearer <PAT>`, `Accept: application/vnd.github+json`
+   - Payload: `{"event_type":"vercel.deployment.success","client_payload":{"url":"<url>","target":"production"}}`
+4. **Aplicar migración 008** a prod (`supabase db push --linked` desde local, una vez).
+5. **Branch protection** en GitHub Settings → Branches → `main`: require status checks `Lint`, `Type Check`, `Tests`, `DB Validate`, `Build`.
+
+Verificación end-to-end: push trivial a `main` → CI verde → Vercel deploya → Deploy Hook dispara workflow `Smoke (post-deploy)` → Playwright verde.
 
 ### Si NO funciona
 - Si vuelve a aparecer `violates check constraint` → me decís cuántas y qué casos. Probable: alguna fila pasó el filtro pero la lógica de reclasificación dejó algún edge case.

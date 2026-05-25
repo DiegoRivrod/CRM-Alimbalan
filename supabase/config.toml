@@ -13,3 +13,17 @@ major_version = 15
 [auth]
 enabled = true
 site_url = "http://localhost:5178"
+
+# Edge Functions sin verificación de JWT — invocadas por pg_cron o webhooks externos.
+# Fuente: https://supabase.com/docs/guides/functions/auth
+[functions.sync-visitas]
+verify_jwt = false
+
+[functions.sync-maestros]
+verify_jwt = false
+
+[functions.calcular-puntos]
+verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false

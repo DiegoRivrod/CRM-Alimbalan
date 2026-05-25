@@ -50,8 +50,8 @@
 | **Validaciones Edge Functions**: year range, whitelist, payload limit | ✅ |
 | **Edge Function `whatsapp-webhook`** con HMAC | ✅ creada · 🔲 deployar |
 | **Migración 008 WhatsApp** | ✅ creada · 🔲 aplicar |
-| **CI/CD Fase 3** (Vercel + secrets Supabase deploy) | 🔲 |
-| **CI/CD Fase 4** (branch protection) | 🔲 |
+| **CI/CD Fase 3** (deploy Supabase consolidado + endpoint `health`) | ✅ código en `feat/cicd-f3-f4` · 🔲 merge + manuales |
+| **CI/CD Fase 4** (smoke tests Playwright + branch protection) | ✅ código en `feat/cicd-f3-f4` · 🔲 secrets + Deploy Hook Vercel |
 
 ---
 
@@ -245,14 +245,38 @@ Normaliza (minúsculas, sin acentos, sin "SAC/EIRL/SRL") → trigramas de 3 char
   3. `supabase functions deploy whatsapp-webhook --no-verify-jwt`.
   4. Guía: [docs/WHATSAPP_INTEGRATION.md](docs/WHATSAPP_INTEGRATION.md).
 
-### CI/CD Fase 3 — Deploy automático
-1. gh CLI (binario en `/tmp/gh_cli/bin/gh.exe`) — autenticar con token.
-2. Conectar Vercel: Import en vercel.com, framework Vite, build `npm run build`, output `dist`, env vars.
-3. Crear secrets `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF=hbxfohohfuzzihjhzhcy`.
-4. `supabase migration repair --status applied` para 001–008.
+### CI/CD Fase 3 — Deploy automático (código entregado en `feat/cicd-f3-f4`)
 
-### CI/CD Fase 4 — Branch protection
-Require PR + status checks (Lint, Type Check, Tests, Build, DB Validate) en `main`.
+**Lo que ya está en código:**
+- `.github/workflows/deploy-production.yml` consolidado: `supabase functions deploy` (sin nombre) despliega **todas** las funciones bajo `supabase/functions/`. Cobertura: `sync-visitas`, `sync-maestros`, `calcular-puntos`, `whatsapp-webhook`, `health`.
+- `supabase/config.toml`: `verify_jwt = false` declarado por función (reemplaza los flags CLI `--no-verify-jwt`). Fuente: https://supabase.com/docs/guides/functions/auth
+- `supabase/functions/health/index.ts`: endpoint para smoke tests (`select 1` con anon key — valida cadena anon→RLS).
+- `setup-cli@v1` → `setup-cli@v2`.
+
+**Acciones manuales pendientes (una vez):**
+1. Verificar `gh secret list` incluye `SUPABASE_ACCESS_TOKEN` y `SUPABASE_PROJECT_REF`.
+2. Aplicar migración 008 (`whatsapp-webhook`) desde local: `supabase db push --linked`.
+3. Confirmar que Vercel tiene `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en Production env.
+
+### CI/CD Fase 4 — Smoke tests + branch protection (código entregado en `feat/cicd-f3-f4`)
+
+**Lo que ya está en código:**
+- `playwright.config.ts` + `e2e/smoke.spec.ts` con tests `@smoke` (login + dashboard + abal-plus + kpis).
+- `@playwright/test ^1.60.0` añadido a `devDependencies`.
+- `.github/workflows/smoke.yml`: trigger `repository_dispatch` con tipo `vercel.deployment.success` (también `workflow_dispatch` manual). Sube `playwright-report` como artifact ante fallo.
+- ESLint: `e2e/`, `playwright-report/`, `test-results/` excluidos.
+
+**Acciones manuales pendientes (una vez):**
+1. Crear usuario `e2e@abal.test` en Supabase + insertar en `public.perfiles` con `rol='gerente'`.
+2. `gh secret set SUPABASE_E2E_USER_EMAIL` y `gh secret set SUPABASE_E2E_USER_PASSWORD`.
+3. Deploy Hook en Vercel (Settings → Git → Deploy Hooks) → `https://api.github.com/repos/DiegoRivrod/CRM-Alimbalan/dispatches` con `{"event_type":"vercel.deployment.success","client_payload":{"url":"<deployment_url>","target":"production"}}`.
+4. Branch protection en GitHub → Settings → Branches → `main`: require status checks `Lint`, `Type Check`, `Tests`, `DB Validate`, `Build`.
+
+**Anti-patrones a NO introducir:**
+- ❌ Vercel CLI deploy desde Actions (la integración Git nativa es lo recomendado por Vercel — KB 2026).
+- ❌ `on: deployment_status` (deprecado).
+- ❌ `SUPABASE_SERVICE_ROLE_KEY` en smoke tests (bypassa RLS, falsos positivos).
+- ❌ Editar migraciones ya aplicadas (hash mismatch).
 
 ---
 
