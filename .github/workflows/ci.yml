@@ -108,6 +108,14 @@ jobs:
           done
           echo "── All migrations applied successfully"
 
+      - name: Grant table privileges to CI roles
+        run: |
+          psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          GRANT USAGE ON SCHEMA public TO authenticated, anon, service_role;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+          GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+          SQL
+
       - name: Run RLS tests
         run: psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql 2>&1
 
