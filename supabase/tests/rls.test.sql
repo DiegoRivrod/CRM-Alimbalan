@@ -164,7 +164,9 @@ BEGIN
   -- es del schema "auth" y se llena via signUp. En CI/local con stub, podemos
   -- insertar directo si tenemos permisos.
   BEGIN
-    INSERT INTO auth.users (id) VALUES (uid_a), (uid_b) ON CONFLICT (id) DO NOTHING;
+    INSERT INTO auth.users (id, email)
+      VALUES (uid_a, 'test_a@ci.local'), (uid_b, 'test_b@ci.local')
+      ON CONFLICT (id) DO NOTHING;
   EXCEPTION
     WHEN insufficient_privilege OR undefined_table THEN
       RAISE NOTICE '  ⚠ No se puede insertar en auth.users (entorno restringido); test funcional [5] saltado';
