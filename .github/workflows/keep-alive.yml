@@ -1,0 +1,25 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 17 * * *'  # 12:00 PM hora Perú (UTC-5)
+  workflow_dispatch:       # permite lanzarlo manualmente desde GitHub
+
+jobs:
+  ping:
+    name: Ping diario — prevenir pausa por inactividad
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/clientes?select=id&limit=1")
+          echo "HTTP status: $HTTP_CODE"
+          if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
+            echo "Supabase activo — proyecto CRM-VENTAS no será pausado"
+          else
+            echo "Respuesta inesperada: $HTTP_CODE" >&2
+            exit 1
+          fi
