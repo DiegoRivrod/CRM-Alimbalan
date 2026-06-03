@@ -178,7 +178,8 @@ BEGIN
     VALUES
       (uid_a, 'Test A', 'vendedor', 'FUERZA_TEST_A'),
       (uid_b, 'Test B', 'vendedor', 'FUERZA_TEST_B')
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE
+      SET rol = EXCLUDED.rol, fuerza_de_venta = EXCLUDED.fuerza_de_venta;
 
   -- Clientes uno de cada fuerza
   INSERT INTO public.clientes (idcliente, nombre, responsable)
