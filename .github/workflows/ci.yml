@@ -100,17 +100,16 @@ jobs:
         run: |
           set -e
           for f in $(ls supabase/migrations/*.sql | sort); do
-            # Saltar migrations que requieren extensiones no disponibles en postgres:15
-            # (pg_cron, pg_net las habilita Supabase platform en runtime).
             case "$f" in
               *003_cron_sync.sql) echo "── Skipping $f (requires pg_cron/pg_net)"; continue ;;
             esac
             echo "── Applying $f"
-            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f" 2>&1 || { echo "MIGRATION FAILED: $f"; exit 3; }
           done
+          echo "── All migrations applied successfully"
 
       - name: Run RLS tests
-        run: psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql
+        run: psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql 2>&1
 
   build:
     name: Build
