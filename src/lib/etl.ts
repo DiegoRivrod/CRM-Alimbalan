@@ -195,6 +195,7 @@ export async function procesarFacturasExcel(
   let skipped = 0
   const errors: string[] = []
   const skipDetail = { clienteVarios: 0, valorCero: 0, sinProducto: 0, duplicados: 0, otrosErrores: 0 }
+  const seen = new Set<string>()
 
   for (const raw of rawRows) {
     try {
@@ -210,6 +211,11 @@ export async function procesarFacturasExcel(
       // ── Filtros de limpieza (igual que el Python) ──────────────────────
       if (nombre.toUpperCase().includes('CLIENTE  VARIOS')) { skipped++; skipDetail.clienteVarios++; continue }
       if (total === 0)                                        { skipped++; skipDetail.valorCero++;     continue }
+
+      // ── Deduplicar por clave natural usando el IDARTICULO raw del Excel ─
+      const dedupKey = `${idserie}|${numero}|${idarticulo}`
+      if (seen.has(dedupKey)) { skipped++; skipDetail.duplicados++; continue }
+      seen.add(dedupKey)
 
       // ── Join con Productos (left join — no descarta si no hay match) ──
       const producto = productosMap.get(idarticulo) ?? null
@@ -300,7 +306,7 @@ export async function procesarFacturasExcel(
         descondici:     str(raw.DESCONDICI) || null,
         idcliente,
         nombre,
-        idarticulo:     idarticulo || null,
+        idarticulo:     producto ? (idarticulo || null) : null,
         desarticul:     str(raw.DESCRIPCIO) || null,
         cantidadar:     raw.CANTIDAD != null ? Number(raw.CANTIDAD) : null,
         pesokgrtot:     raw.PESOKGR   != null ? Number(raw.PESOKGR)  : null,
@@ -332,17 +338,7 @@ export async function procesarFacturasExcel(
     }
   }
 
-  // Deduplicar por clave natural
-  const seen = new Set<string>()
-  const deduped = rows.filter(r => {
-    const key = `${r.idserie}|${r.numero}|${r.idarticulo}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-  skipDetail.duplicados = rows.length - deduped.length
-
-  return { rows: deduped, skipped: skipped + skipDetail.duplicados, errors, skipDetail }
+  return { rows, skipped, errors, skipDetail }
 }
 
 // ─── Normalizar visitas (Google Forms ancho → largo) ────────────────────────
