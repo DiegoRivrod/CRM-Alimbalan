@@ -154,7 +154,7 @@ export interface Factura {
   docventa: string             // IDSERIE + '-' + NUMERO
   fecha: string
   descondici: string | null
-  idcliente: string
+  idcliente: string | null
   nombre: string
   idarticulo: string | null
   desarticul: string | null

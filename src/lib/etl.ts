@@ -304,7 +304,7 @@ export async function procesarFacturasExcel(
         numero,
         fecha:          fechaStr,
         descondici:     str(raw.DESCONDICI) || null,
-        idcliente,
+        idcliente:      cliente ? idcliente : null,
         nombre,
         idarticulo:     producto ? (idarticulo || null) : null,
         desarticul:     str(raw.DESCRIPCIO) || null,
