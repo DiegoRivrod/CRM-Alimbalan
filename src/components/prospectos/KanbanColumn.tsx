@@ -10,6 +10,11 @@ const COLUMN_CONFIG: Record<EstadoProspecto, { label: string; color: string; bgH
   perdido:     { label: 'Perdidos',     color: 'bg-red-500',    bgHeader: 'bg-red-50' },
 }
 
+// Probabilidad por defecto si el campo es 0 (sin dato ingresado aún)
+const PROB_DEFAULT: Record<EstadoProspecto, number> = {
+  nuevo: 20, seguimiento: 50, convertido: 100, perdido: 0,
+}
+
 interface Props {
   estado: EstadoProspecto
   prospectos: ProspectoRow[]
@@ -21,6 +26,24 @@ export default function KanbanColumn({ estado, prospectos, isOver }: Props) {
   const config = COLUMN_CONFIG[estado]
   const hovering = isOver || dropIsOver
 
+  // Calcular valor total y valor ponderado de la columna
+  const { valorTotal, valorPonderado } = prospectos.reduce(
+    (acc, p) => {
+      const monto = p.monto_estimado ?? 0
+      const prob  = p.probabilidad_cierre > 0 ? p.probabilidad_cierre : PROB_DEFAULT[estado]
+      return {
+        valorTotal:    acc.valorTotal + monto,
+        valorPonderado: acc.valorPonderado + Math.round(monto * prob / 100),
+      }
+    },
+    { valorTotal: 0, valorPonderado: 0 }
+  )
+
+  const fmtK = (n: number) =>
+    n === 0 ? null : n >= 1000
+      ? `S/ ${(n / 1000).toFixed(1)}k`
+      : `S/ ${n.toLocaleString('es-PE')}`
+
   return (
     <div
       ref={setNodeRef}
@@ -28,12 +51,21 @@ export default function KanbanColumn({ estado, prospectos, isOver }: Props) {
         ${hovering ? 'bg-primary/5 border-primary/30' : 'bg-muted/30'}`}
     >
       {/* Header */}
-      <div className={`flex items-center gap-2 px-3 py-2.5 rounded-t-xl ${config.bgHeader}`}>
-        <div className={`w-2.5 h-2.5 rounded-full ${config.color}`} />
-        <span className="text-sm font-semibold">{config.label}</span>
-        <span className="ml-auto text-xs text-muted-foreground bg-white/80 rounded-full px-2 py-0.5 font-medium">
-          {prospectos.length}
-        </span>
+      <div className={`px-3 py-2.5 rounded-t-xl ${config.bgHeader}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-2.5 h-2.5 rounded-full ${config.color}`} />
+          <span className="text-sm font-semibold">{config.label}</span>
+          <span className="ml-auto text-xs text-muted-foreground bg-white/80 rounded-full px-2 py-0.5 font-medium">
+            {prospectos.length}
+          </span>
+        </div>
+        {/* Valor económico de la columna */}
+        {valorTotal > 0 && (
+          <div className="flex items-center justify-between mt-1.5 text-[10px]">
+            <span className="text-muted-foreground">{fmtK(valorTotal)}</span>
+            <span className="text-emerald-700 font-medium">{fmtK(valorPonderado)} pond.</span>
+          </div>
+        )}
       </div>
 
       {/* Cards */}

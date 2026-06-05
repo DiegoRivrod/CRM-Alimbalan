@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -42,6 +43,10 @@ interface KpiCards {
   actividadMes: number | null
 }
 
+interface MetaRow {
+  meta_soles: number | null
+}
+
 // ── Tooltip personalizado ─────────────────────────────────────────────────────
 
 function TooltipSoles({ active, payload, label }: {
@@ -76,17 +81,19 @@ export default function DashboardPage() {
   })
   const [factActual, setFactActual] = useState<FacturaRow[]>([])
   const [factAnterior, setFactAnterior] = useState<FacturaRow[]>([])
+  const [metaSoles, setMetaSoles] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const cargar = async () => {
-      const [clientesRes, prospectosMesRes, actividadRes, factActualRes, factAnteriorRes] =
+      const [clientesRes, prospectosMesRes, actividadRes, factActualRes, factAnteriorRes, metasRes] =
         await Promise.all([
           supabase.from('clientes').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVO'),
           supabase.from('prospectos').select('*', { count: 'exact', head: true }).in('estado', ['nuevo', 'seguimiento']),
           supabase.from('actividad').select('*', { count: 'exact', head: true }).gte('created_at', iniciomes),
           supabase.from('facturas').select('semana,valortotal,idcliente,nombre').eq('mes', mesActual).eq('anio', anioActual),
           supabase.from('facturas').select('semana,valortotal,idcliente,nombre').eq('mes', mesAnt).eq('anio', anioAnt),
+          supabase.from('metas').select('meta_soles').eq('mes', mesActual).eq('anio', anioActual),
         ])
 
       const rowsActual   = (factActualRes.data ?? []) as FacturaRow[]
@@ -99,8 +106,13 @@ export default function DashboardPage() {
         prospectosMes:   prospectosMesRes.count ?? 0,
         actividadMes:    actividadRes.count ?? 0,
       })
+      // Meta total del mes (suma de todas las metas de vendedores)
+      const metaTotal = ((metasRes.data ?? []) as MetaRow[])
+        .reduce((s, m) => s + (m.meta_soles ?? 0), 0)
+
       setFactActual(rowsActual)
       setFactAnterior(rowsAnterior)
+      setMetaSoles(metaTotal > 0 ? metaTotal : null)
       setLoading(false)
     }
     cargar()
@@ -130,6 +142,19 @@ export default function DashboardPage() {
       anterior: Math.round(aggAnt[s]),
     }))
   }, [factActual, factAnterior])
+
+  // ── Forecasting al cierre del mes ─────────────────────────────────────────
+  const forecast = useMemo(() => {
+    const diasTotalesMes = new Date(anioActual, ahora.getMonth() + 1, 0).getDate()
+    const diaActual = ahora.getDate()
+    const ventasAcum = factActual.reduce((s, f) => s + (f.valortotal ?? 0), 0)
+    if (diaActual === 0) return null
+    const proyeccion = Math.round((ventasAcum / diaActual) * diasTotalesMes)
+    const pctMes = Math.round((diaActual / diasTotalesMes) * 100)
+    const pctMeta = metaSoles && metaSoles > 0 ? Math.round((proyeccion / metaSoles) * 100) : null
+    const pctAvanceMeta = metaSoles && metaSoles > 0 ? Math.round((ventasAcum / metaSoles) * 100) : null
+    return { proyeccion, pctMes, pctMeta, pctAvanceMeta, diasTotalesMes, diaActual, ventasAcum }
+  }, [factActual, metaSoles, ahora, anioActual])
 
   // ── Top 5 clientes del mes ────────────────────────────────────────────────
   const top5 = useMemo(() => {
@@ -175,6 +200,81 @@ export default function DashboardPage() {
             ))
         }
       </div>
+
+      {/* Widget de Forecasting */}
+      {!loading && forecast && (
+        <div className="bg-white border border-border rounded-xl p-5">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <h3 className="text-sm font-semibold">Proyección al cierre — {mesActual}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Día {forecast.diaActual} de {forecast.diasTotalesMes} ({forecast.pctMes}% del mes transcurrido)
+              </p>
+            </div>
+            {forecast.pctMeta !== null && (
+              <span className={`flex items-center gap-1 text-sm font-semibold px-3 py-1 rounded-full
+                ${forecast.pctMeta >= 100 ? 'bg-green-100 text-green-700' :
+                  forecast.pctMeta >= 80  ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-600'}`}>
+                {forecast.pctMeta >= 100
+                  ? <TrendingUp className="w-4 h-4" />
+                  : forecast.pctMeta >= 80
+                    ? <Minus className="w-4 h-4" />
+                    : <TrendingDown className="w-4 h-4" />}
+                {forecast.pctMeta}% de la meta
+              </span>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Acumulado actual</p>
+              <p className="text-xl font-semibold">{formatSoles(forecast.ventasAcum)}</p>
+              {forecast.pctAvanceMeta !== null && (
+                <p className="text-xs text-muted-foreground mt-0.5">{forecast.pctAvanceMeta}% de la meta</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Proyección al cierre</p>
+              <p className="text-xl font-semibold text-blue-600">{formatSoles(forecast.proyeccion)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">a ritmo actual</p>
+            </div>
+            {metaSoles && (
+              <div>
+                <p className="text-xs text-muted-foreground">Meta del mes</p>
+                <p className="text-xl font-semibold">{formatSoles(metaSoles)}</p>
+                <p className={`text-xs mt-0.5 font-medium ${
+                  forecast.proyeccion >= metaSoles ? 'text-green-600' : 'text-red-500'
+                }`}>
+                  {forecast.proyeccion >= metaSoles
+                    ? `+${formatSoles(forecast.proyeccion - metaSoles)} sobre meta`
+                    : `−${formatSoles(metaSoles - forecast.proyeccion)} bajo meta`}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Barra de progreso */}
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+              <span>Avance del mes</span>
+              <span>{forecast.pctMes}%</span>
+            </div>
+            <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+              {/* Barra de ventas acumuladas */}
+              <div
+                className="absolute inset-y-0 left-0 bg-blue-500 rounded-full transition-all"
+                style={{ width: `${Math.min(forecast.pctAvanceMeta ?? forecast.pctMes, 100)}%` }}
+              />
+              {/* Marcador del día actual en el mes */}
+              <div
+                className="absolute inset-y-0 w-0.5 bg-gray-400"
+                style={{ left: `${forecast.pctMes}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Gráficas */}
       <div className="grid lg:grid-cols-2 gap-6">

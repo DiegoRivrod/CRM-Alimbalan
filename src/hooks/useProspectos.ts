@@ -24,6 +24,9 @@ export interface ProspectoRow {
   fecha_conversion: string | null
   created_at: string
   updated_at: string
+  monto_estimado: number
+  probabilidad_cierre: number
+  razon_perdida: string | null
   // joins opcionales
   visita_id: string | null
   cliente_sugerido_nombre?: string | null
@@ -122,6 +125,7 @@ export function useProspectos(
         .select(`
           id, nombre, contacto, fuerza_de_venta, zona, especie,
           potencial_tn, marcas_consume, estado,
+          monto_estimado, probabilidad_cierre, razon_perdida,
           idcliente_sugerido, match_confianza, match_aprobado,
           match_aprobado_at, primera_factura_docventa,
           fecha_conversion, created_at, updated_at, visita_id

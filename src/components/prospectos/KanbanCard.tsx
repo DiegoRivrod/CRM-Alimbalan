@@ -1,8 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, Weight, User } from 'lucide-react'
+import { MapPin, Weight, User, DollarSign } from 'lucide-react'
 import type { ProspectoRow } from '@/hooks/useProspectos'
+
+const formatSoles = (n: number) =>
+  n === 0 ? null : `S/ ${n.toLocaleString('es-PE', { maximumFractionDigits: 0 })}`
 
 interface Props {
   prospecto: ProspectoRow
@@ -27,6 +30,10 @@ export default function KanbanCard({ prospecto, isDragging }: Props) {
   }
 
   const dragging = isDragging || isSortDragging
+  const montoFmt = formatSoles(prospecto.monto_estimado ?? 0)
+  const valorPonderado = montoFmt
+    ? Math.round((prospecto.monto_estimado ?? 0) * (prospecto.probabilidad_cierre ?? 20) / 100)
+    : null
 
   return (
     <div
@@ -61,6 +68,21 @@ export default function KanbanCard({ prospecto, isDragging }: Props) {
           </span>
         )}
       </div>
+
+      {/* Monto estimado */}
+      {montoFmt && (
+        <div className="flex items-center justify-between pt-1 border-t border-border/40">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <DollarSign className="w-3 h-3" />
+            {montoFmt}
+          </span>
+          {valorPonderado != null && valorPonderado > 0 && (
+            <span className="text-[10px] text-emerald-600 font-medium">
+              ×{prospecto.probabilidad_cierre}% = S/ {valorPonderado.toLocaleString('es-PE')}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Match badge */}
       {prospecto.match_aprobado && (

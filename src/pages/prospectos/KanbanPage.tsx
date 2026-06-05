@@ -10,7 +10,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { List, Kanban } from 'lucide-react'
+import { List, Kanban, TrendingUp } from 'lucide-react'
 import { useKanban } from '@/hooks/useKanban'
 import { useAuth } from '@/lib/auth'
 import type { EstadoProspecto, ProspectoRow } from '@/hooks/useProspectos'
@@ -88,6 +88,23 @@ export default function KanbanPage() {
 
   const totalProspectos = columnas.reduce((s, c) => s + c.prospectos.length, 0)
 
+  // KPIs del pipeline
+  const PROB_DEFAULT: Record<string, number> = { nuevo: 20, seguimiento: 50, convertido: 100, perdido: 0 }
+  const { valorTotalPipeline, valorPonderadoPipeline } = columnas
+    .filter(c => c.estado !== 'perdido')
+    .reduce((acc, col) => {
+      for (const p of col.prospectos) {
+        const monto = p.monto_estimado ?? 0
+        const prob  = p.probabilidad_cierre > 0 ? p.probabilidad_cierre : PROB_DEFAULT[col.estado]
+        acc.valorTotalPipeline    += monto
+        acc.valorPonderadoPipeline += Math.round(monto * prob / 100)
+      }
+      return acc
+    }, { valorTotalPipeline: 0, valorPonderadoPipeline: 0 })
+
+  const fmtSoles = (n: number) =>
+    `S/ ${n.toLocaleString('es-PE', { maximumFractionDigits: 0 })}`
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -116,6 +133,30 @@ export default function KanbanPage() {
           </div>
         </div>
       </div>
+
+      {/* KPIs del pipeline */}
+      {!loading && valorTotalPipeline > 0 && (
+        <div className="flex flex-wrap gap-4">
+          <div className="bg-white border border-border rounded-xl px-4 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Valor bruto del pipeline</p>
+              <p className="text-base font-semibold">{fmtSoles(valorTotalPipeline)}</p>
+            </div>
+          </div>
+          <div className="bg-white border border-border rounded-xl px-4 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Valor ponderado (por probabilidad)</p>
+              <p className="text-base font-semibold text-emerald-700">{fmtSoles(valorPonderadoPipeline)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filtro vendedor */}
       {(isAdmin || isSupervisor) && (
