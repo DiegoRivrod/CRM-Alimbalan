@@ -20,6 +20,8 @@ import VisitasPage from '@/pages/VisitasPage'
 import KpisPage from '@/pages/kpis/KpisPage'
 import AbalPlusDashboard from '@/pages/abal-plus/AbalPlusDashboard'
 import ImportarPage from '@/pages/importar/ImportarPage'
+import MapaPage from '@/pages/mapa/MapaPage'
+import CarteraPage from '@/pages/cartera/CarteraPage'
 
 export default function App() {
   return (
@@ -41,6 +43,8 @@ export default function App() {
               <Route path="/tareas"            element={<TareasPage />} />
               <Route path="/calendario"        element={<CalendarioPage />} />
               <Route path="/visitas"           element={<VisitasPage />} />
+              <Route path="/mapa"              element={<MapaPage />} />
+              <Route path="/cartera"           element={<CarteraPage />} />
 
               <Route path="/vendedores" element={
                 <ProtectedRoute roles={['gerente', 'supervisor']}>
