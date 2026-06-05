@@ -211,9 +211,9 @@ export async function procesarFacturasExcel(
       if (nombre.toUpperCase().includes('CLIENTE  VARIOS')) { skipped++; skipDetail.clienteVarios++; continue }
       if (total === 0)                                        { skipped++; skipDetail.valorCero++;     continue }
 
-      // ── Join con Productos ─────────────────────────────────────────────
-      const producto = productosMap.get(idarticulo)
-      if (!producto) { skipped++; skipDetail.sinProducto++; continue }
+      // ── Join con Productos (left join — no descarta si no hay match) ──
+      const producto = productosMap.get(idarticulo) ?? null
+      if (!producto) skipDetail.sinProducto++   // contabilizar pero NO omitir
 
       // ── Join con Clientes (left join) ──────────────────────────────────
       const cliente = clientesMap.get(idcliente)
@@ -239,35 +239,38 @@ export async function procesarFacturasExcel(
 
       // ── Reglas de reasignación FUERZA DE VENTA (réplica exacta Python) ─
 
-      // Truchas en Puno → VENDEDOR ZONA PUNO
-      if (producto.lineas === 'TRUCHAS' && departamento === 'Puno') {
-        fuerzaDeVenta = 'VENDEDOR ZONA PUNO'
-      }
+      // Reglas de reasignación solo aplican cuando hay match de producto
+      if (producto) {
+        // Truchas en Puno → VENDEDOR ZONA PUNO
+        if (producto.lineas === 'TRUCHAS' && departamento === 'Puno') {
+          fuerzaDeVenta = 'VENDEDOR ZONA PUNO'
+        }
 
-      // Pelletizado (VITAMAXPRO/INVITA) en Puno → ASESORA COMERCIAL 2
-      if (['VITAMAXPRO', 'INVITA'].includes(producto.marca ?? '') && departamento === 'Puno') {
-        fuerzaDeVenta = 'ASESORA COMERCIAL 2'
-        if (codMeta === 'VENDEDOR ZONA PUNO-Puno') codMeta = 'ASESORA COMERCIAL 2-PunoOtros'
-      }
+        // Pelletizado (VITAMAXPRO/INVITA) en Puno → ASESORA COMERCIAL 2
+        if (['VITAMAXPRO', 'INVITA'].includes(producto.marca ?? '') && departamento === 'Puno') {
+          fuerzaDeVenta = 'ASESORA COMERCIAL 2'
+          if (codMeta === 'VENDEDOR ZONA PUNO-Puno') codMeta = 'ASESORA COMERCIAL 2-PunoOtros'
+        }
 
-      // Pelletizado en Apurimac → ASESORA COMERCIAL 2
-      if (['VITAMAXPRO', 'INVITA'].includes(producto.marca ?? '') && departamento === 'Apurimac') {
-        fuerzaDeVenta = 'ASESORA COMERCIAL 2'
-      }
+        // Pelletizado en Apurimac → ASESORA COMERCIAL 2
+        if (['VITAMAXPRO', 'INVITA'].includes(producto.marca ?? '') && departamento === 'Apurimac') {
+          fuerzaDeVenta = 'ASESORA COMERCIAL 2'
+        }
 
-      // Pelletizado en Junin → ASESORA COMERCIAL 2
-      if (['VITAMAXPRO', 'INVITA'].includes(producto.marca ?? '') && departamento === 'Junin') {
-        fuerzaDeVenta = 'ASESORA COMERCIAL 2'
-      }
+        // Pelletizado en Junin → ASESORA COMERCIAL 2
+        if (['VITAMAXPRO', 'INVITA'].includes(producto.marca ?? '') && departamento === 'Junin') {
+          fuerzaDeVenta = 'ASESORA COMERCIAL 2'
+        }
 
-      // VITAMAXPRO AQUA de VENDEDOR DE COBERTURA → ASESORA COMERCIAL 1
-      if (fuerzaDeVenta === 'VENDEDOR DE COBERTURA AREQUIPA' && producto.marca === 'VITAMAXPRO AQUA') {
-        fuerzaDeVenta = 'ASESORA COMERCIAL 1'
-      }
+        // VITAMAXPRO AQUA de VENDEDOR DE COBERTURA → ASESORA COMERCIAL 1
+        if (fuerzaDeVenta === 'VENDEDOR DE COBERTURA AREQUIPA' && producto.marca === 'VITAMAXPRO AQUA') {
+          fuerzaDeVenta = 'ASESORA COMERCIAL 1'
+        }
 
-      // Truchas/Peces de ASESORA COMERCIAL 1 → ajustar cod meta
-      if (fuerzaDeVenta === 'ASESORA COMERCIAL 1' && producto.marca === 'VITAMAXPRO AQUA') {
-        codMeta = 'ASESORA COMERCIAL 1-ArequipaExtrusion'
+        // Truchas/Peces de ASESORA COMERCIAL 1 → ajustar cod meta
+        if (fuerzaDeVenta === 'ASESORA COMERCIAL 1' && producto.marca === 'VITAMAXPRO AQUA') {
+          codMeta = 'ASESORA COMERCIAL 1-ArequipaExtrusion'
+        }
       }
 
       // Ajuste LLAMOCCA HANCCO MAGDALENA con vendedor ARENAS
@@ -303,8 +306,8 @@ export async function procesarFacturasExcel(
         pesokgrtot:     raw.PESOKGR   != null ? Number(raw.PESOKGR)  : null,
         valortotal:     total,
         vendedor:       vendedor || null,
-        lineas:         producto.lineas  ?? null,
-        marca:          producto.marca   ?? null,
+        lineas:         producto?.lineas  ?? null,
+        marca:          producto?.marca   ?? null,
         mes,
         anio,
         semana,

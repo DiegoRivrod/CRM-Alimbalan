@@ -110,14 +110,17 @@ describe('procesarFacturasExcel — filtros de limpieza', () => {
     expect(res.skipDetail.valorCero).toBe(1)
   })
 
-  it('omite filas cuyo IDARTICULO no está en el catálogo', async () => {
+  it('importa filas sin match de producto (left join) con lineas/marca null', async () => {
     const file = makeFacturaFile([
       filaERP(),
       filaERP({ NUMERO: '2', IDARTICULO: '9999' }),
     ])
     const res = await procesarFacturasExcel(file, [clienteBase], [productoBase], metasVacias, 'ABRIL_2026')
-    expect(res.rows).toHaveLength(1)
+    // Ambas filas se importan — la sin match queda con lineas/marca null
+    expect(res.rows).toHaveLength(2)
     expect(res.skipDetail.sinProducto).toBe(1)
+    expect(res.rows[1].lineas).toBeNull()
+    expect(res.rows[1].marca).toBeNull()
   })
 
   it('hace padStart(6) al IDCLIENTE para emparejar con el catálogo', async () => {
