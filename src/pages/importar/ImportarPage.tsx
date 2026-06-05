@@ -375,25 +375,35 @@ export default function ImportarPage() {
       const { count, error } = await upsertBatch('visitas', visitasResueltas, 'marca_temporal,fuerza_de_venta,numero_visita')
       if (error) throw new Error(error)
 
-      // Crear prospectos para visitas de clientes nuevos
+      // Crear prospectos para visitas de clientes nuevos (deduplicar por nombre+fuerza)
       const nuevos = visitasResueltas.filter(v => v.es_cliente_nuevo && v.nombre_cliente_nuevo)
+      let prospectoCount = 0
       if (nuevos.length) {
-        const prospectos = nuevos.map(v => ({
-          nombre:          v.nombre_cliente_nuevo!,
-          contacto:        v.contacto,
-          fuerza_de_venta: v.fuerza_de_venta,
-          zona:            v.zona,
-          especie:         v.especie,
-          potencial_tn:    v.potencial_consumo_tn,
-          marcas_consume:  v.marcas_consume,
-          estado:          'nuevo' as const,
-        }))
-        await upsertBatch('prospectos', prospectos, 'nombre,fuerza_de_venta')
+        const vistos = new Map<string, object>()
+        for (const v of nuevos) {
+          const key = `${v.nombre_cliente_nuevo}||${v.fuerza_de_venta}`
+          if (!vistos.has(key)) {
+            vistos.set(key, {
+              nombre:          v.nombre_cliente_nuevo!,
+              contacto:        v.contacto,
+              fuerza_de_venta: v.fuerza_de_venta,
+              zona:            v.zona,
+              especie:         v.especie,
+              potencial_tn:    v.potencial_consumo_tn,
+              marcas_consume:  v.marcas_consume,
+              estado:          'nuevo' as const,
+            })
+          }
+        }
+        const prospectos = Array.from(vistos.values())
+        prospectoCount = prospectos.length
+        const { error: errP } = await upsertBatch('prospectos', prospectos, 'nombre,fuerza_de_venta')
+        if (errP) throw new Error(`Error creando prospectos: ${errP}`)
       }
 
       setStepVisitas({
         status: 'ok',
-        message: `${count} visitas insertadas · ${nuevos.length} prospectos creados`,
+        message: `${count} visitas insertadas · ${prospectoCount} prospectos creados`,
       })
 
       // Registrar en historial
@@ -401,7 +411,7 @@ export default function ImportarPage() {
       if (user) {
         await registrarImportacion({
           tipo: 'visitas', mes_importacion: null,
-          filas_procesadas: count, filas_omitidas: 0, prospectos_conv: nuevos.length,
+          filas_procesadas: count, filas_omitidas: 0, prospectos_conv: prospectoCount,
           usuario_id: user.id,
         })
       }
